@@ -1,0 +1,6 @@
+@SubastaYa.WebApi_HostAddress = http://localhost:5216
+
+GET {{SubastaYa.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
