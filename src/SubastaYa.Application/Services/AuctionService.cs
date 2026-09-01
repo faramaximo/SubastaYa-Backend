@@ -95,7 +95,7 @@ public class AuctionService : IAuctionService
             IncrementoMinimo = createAuctionDto.IncrementoMinimo,
             FechaInicio = createAuctionDto.FechaInicio,
             FechaFin = createAuctionDto.FechaFin,
-            Estado = EstadoSubasta.Proxima // Valor inicial por defecto
+            Estado = EstadoSubasta.Programada // Valor inicial por defecto
         };
 
         _context.Subastas.Add(subasta);
