@@ -15,9 +15,9 @@ namespace SubastaYa.Domain.Entities
         // Saldo disponible calculado
         public decimal SaldoDisponible => SaldoTotal - SaldoRetenido;
 
-        // Token de concurrencia optimista (exigido por el TP)
-        [Timestamp]
-        public byte[] Version { get; set; } = Array.Empty<byte>();
+        // Token de concurrencia optimista compatible con MySQL
+        [ConcurrencyCheck]
+        public Guid Version { get; set; } = Guid.NewGuid();
 
         // Navegación
         public Usuario Usuario { get; set; } = null!;

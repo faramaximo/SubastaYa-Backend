@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: subastaya-mysql
+    container_name: subastaya_db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: SubastaYaDb
