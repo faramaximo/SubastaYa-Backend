@@ -33,6 +33,9 @@ public class SubastaYaDbContext : DbContext
             s.Property(x => x.PrecioBase).HasPrecision(18, 2);
             s.Property(x => x.IncrementoMinimo).HasPrecision(18, 2);
             s.Property(x => x.Version).IsRowVersion(); // Manejado automáticamente por Pomelo/MySQL
+
+            //EL ÍNDICE PARA OPTIMIZAR EL WORKER
+            s.HasIndex(x => new { x.Estado, x.FechaFin });
         });
 
         modelBuilder.Entity<Puja>(p =>

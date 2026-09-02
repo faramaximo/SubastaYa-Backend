@@ -16,4 +16,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\eirk\source\repos\SubastaYa-Backend\src\SubastaYa.Infrastructure\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\eirk\source\repos\SubastaYa-Backend\src\SubastaYa.Infrastructure\.editorconfig" />
+  </ItemGroup>
+
 </Project>

@@ -1,18 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace SubastaYa.Infrastructure.Data
 {
-    public class SubastaYaDbContextFactory
+    // Es clave que implemente IDesignTimeDbContextFactory para que la consola no falle
+    public class SubastaYaDbContextFactory : IDesignTimeDbContextFactory<SubastaYaDbContext>
     {
         public SubastaYaDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<SubastaYaDbContext>();
 
-            // Cadena de conexión directa para que las CLI tools de EF Core generen la migración sin fallar
-            var connectionString = "Server=localhost;Port=3306;Database=SubastaYaDb;Uid=subastaya_user;Pwd=subastaya_password;";
+            // ¡Tus credenciales locales!
+            var connectionString = "Server=localhost;Port=3306;Database=SubastaYaDb;Uid=root;Pwd=1234;";
 
             optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 

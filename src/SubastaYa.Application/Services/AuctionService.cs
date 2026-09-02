@@ -20,6 +20,69 @@ public class AuctionService : IAuctionService
         _context = context;
     }
 
+
+    public async Task<IEnumerable<AuctionDto>> ObtenerSubastasAsync(int? estado, int? categoriaId, decimal? precioMin, decimal? precioMax, string? busqueda, string orderBy)
+    {
+        // Agregamos Include(s => s.Pujas) para poder saber cuál es la oferta real más alta
+        var query = _context.Subastas
+            .Include(s => s.Categoria)
+            .Include(s => s.Pujas)
+            .AsQueryable();
+
+        // Filtro por Estado (Corregido: convertimos el número que llega de la web al Enum)
+        if (estado.HasValue)
+            query = query.Where(s => s.Estado == (EstadoSubasta)estado.Value);
+
+        // Filtro por Categoría
+        if (categoriaId.HasValue)
+            query = query.Where(s => s.CategoriaId == categoriaId.Value);
+
+        // Filtro por Búsqueda (Título)
+        if (!string.IsNullOrEmpty(busqueda))
+            query = query.Where(s => s.Titulo.Contains(busqueda));
+
+        // Filtro por Precio (Calculando dinámicamente si tiene pujas o usamos el precio base)
+        if (precioMin.HasValue)
+            query = query.Where(s => (s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase) >= precioMin.Value);
+
+        if (precioMax.HasValue)
+            query = query.Where(s => (s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase) <= precioMax.Value);
+
+        // Ordenamiento desde la Base de Datos
+        switch (orderBy)
+        {
+            case "mayor-tiempo":
+                query = query.OrderByDescending(s => s.FechaFin);
+                break;
+            case "menor-puja":
+                query = query.OrderBy(s => s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase);
+                break;
+            case "mayor-puja":
+                query = query.OrderByDescending(s => s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase);
+                break;
+            case "menor-tiempo":
+            default:
+                query = query.OrderBy(s => s.FechaFin);
+                break;
+        }
+
+        var subastas = await query.ToListAsync();
+
+        // Mapear a tu DTO (Corregido: quitamos el (int) de Estado)
+        return subastas.Select(s => new AuctionDto
+        {
+            Id = s.Id,
+            Titulo = s.Titulo,
+            CategoriaNombre = s.Categoria?.Nombre ?? "",
+            UrlImagen = s.UrlImagen,
+            OfertaMasAlta = s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase, // Valor real de la puja actual
+            FechaFin = s.FechaFin,
+            CantidadOfertas = s.Pujas.Count,
+            Estado = s.Estado
+        });
+    }
+
+
     public async Task<IEnumerable<AuctionDto>> GetAllAuctionsAsync(EstadoSubasta? estado, int? categoriaId)
     {
         var query = _context.Subastas

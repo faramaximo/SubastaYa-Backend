@@ -12,6 +12,7 @@ namespace SubastaYa.Domain.Entities
         public string Accion { get; set; } = string.Empty;
         public int? UsuarioId { get; set; }
         public string DetalleJson { get; set; } = string.Empty;
-        public DateTime Fecha { get; set; } = DateTime.UtcNow;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;   
+        public Usuario? Usuario { get; set; }
     }
 }

@@ -1,60 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
-using SubastaYa.Domain.Enums;
+using System.Threading.Tasks;
 
-namespace SubastaYa.WebApi.Controllers;
-
-[ApiController]
-[Route("api/auctions")]
-public class AuctionsController : ControllerBase
+namespace SubastaYa.WebApi.Controllers
 {
-    private readonly IAuctionService _auctionService;
-
-    public AuctionsController(IAuctionService auctionService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuctionsController : ControllerBase
     {
-        _auctionService = auctionService;
-    }
+        private readonly IAuctionService _auctionService;
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<AuctionDto>>> GetAuctions([FromQuery] EstadoSubasta? estado, [FromQuery] int? categoriaId)
-    {
-        var auctions = await _auctionService.GetAllAuctionsAsync(estado, categoriaId);
-        return Ok(auctions);
-    }
+        public AuctionsController(IAuctionService auctionService)
+        {
+            _auctionService = auctionService;
+        }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<AuctionDto>> GetAuctionById(int id)
-    {
-        var auction = await _auctionService.GetAuctionByIdAsync(id);
+        // 🔴 ESTE DEBE SER EL ÚNICO [HttpGet] SIN RUTA (Para la lista y filtros)
+        [HttpGet]
+        public async Task<IActionResult> GetAuctions(
+            [FromQuery] int? estado,
+            [FromQuery] int? categoriaId,
+            [FromQuery] decimal? precioMin,
+            [FromQuery] decimal? precioMax,
+            [FromQuery] string? busqueda,
+            [FromQuery] string orderBy = "menor-tiempo")
+        {
+            var subastas = await _auctionService.ObtenerSubastasAsync(estado, categoriaId, precioMin, precioMax, busqueda, orderBy);
+            return Ok(subastas);
+        }
 
-        if (auction == null)
-            return NotFound();
+        // [HttpGet] con ruta para traer una sola subasta por ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAuctionById(int id)
+        {
+            var subasta = await _auctionService.GetAuctionByIdAsync(id);
+            if (subasta == null) return NotFound();
+            return Ok(subasta);
+        }
 
-        return Ok(auction);
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<AuctionDto>> CreateAuction([FromBody] CreateAuctionDto createAuctionDto)
-    {
-        // Reglas de negocio UI validaciones extra
-        if (createAuctionDto.FechaFin <= createAuctionDto.FechaInicio)
-            return BadRequest("La fecha de finalización debe ser posterior a la de inicio.");
-
-        if (createAuctionDto.PrecioBase <= 0 || createAuctionDto.IncrementoMinimo <= 0)
-            return BadRequest("El precio base y el incremento mínimo deben ser positivos.");
-
-        var createdAuction = await _auctionService.CreateAuctionAsync(createAuctionDto);
-        return CreatedAtAction(nameof(GetAuctionById), new { id = createdAuction.Id }, createdAuction);
-    }
-
-    // Endpoint placeholder (A implementar cuando el caso de uso del 'FairPlay/Escrow' esté listo)
-    [HttpPost("{id}/bids")]
-    public async Task<IActionResult> PlaceBid(int id, [FromBody] CreateBidDto bidDto)
-    {
-        // Aquí se implementará la compleja lógica de bloqueo atómico de billetera y Anti-Sniping
-        return await Task.FromResult(Ok(new { message = "Lógica de puja atómica pendiente de implementación", subastaId = id }));
+        // [HttpPost] para crear subastas (Módulo 2)
+        [HttpPost]
+        public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionDto dto)
+        {
+            var subasta = await _auctionService.CreateAuctionAsync(dto);
+            return CreatedAtAction(nameof(GetAuctionById), new { id = subasta.Id }, subasta);
+        }
     }
 }
