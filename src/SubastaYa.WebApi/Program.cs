@@ -22,24 +22,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-//cargar los datos a la bd.
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<SubastaYaDbContext>();
-        await SubastaYa.Infrastructure.Seed.DbInitializer.SeedAsync(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocurrió un error al poblar la base de datos con los datos semilla.");
-    }
-}
-
-
 
 
 // 🔴 IMPORTANTE: Habilita el uso de archivos estáticos (HTML, CSS, JS) desde la carpeta wwwroot
@@ -54,5 +36,23 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+// ============================================================
+// DISPARADOR DEL SEEDER AL ARRANCAR LA API
+// Esto ejecuta DbInitializer cada vez que apretás F5
+// ============================================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<SubastaYaDbContext>();
+        // Llama a nuestro seeder (Asegurate de tener el using de tu clase DbInitializer arriba si hace falta)
+        await SubastaYa.Infrastructure.Seed.DbInitializer.SeedAsync(context);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ocurrió un error al ejecutar el Seeder: {ex.Message}");
+    }
+}
 
 app.Run();

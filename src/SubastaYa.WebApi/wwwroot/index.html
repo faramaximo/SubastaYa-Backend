@@ -1,122 +1,122 @@
-﻿<!DOCTYPE html>
-<html lang="es">
-	<head>
-		<meta charset="UTF-8"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>SubastaYa - Dashboard</title>
-		<!-- Bootstrap CSS -->
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-		<!-- Google Fonts -->
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-		<!-- Tu archivo CSS separado -->
-		<link rel="stylesheet" href="/css/catalogo.css"/>
-	</head>
-	<body>
-		<div class="app-container">
+﻿	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>SubastaYa - Dashboard</title>
+			<!-- Bootstrap CSS -->
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+			<!-- Google Fonts -->
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+			<!-- Tu archivo CSS separado -->
+			<link rel="stylesheet" href="/css/catalogo.css"/>
+		</head>
+		<body>
+			<div class="app-container">
 
-			<!-- BARRA LATERAL (SIDEBAR) -->
-			<aside class="sidebar">
-				<div class="sidebar-brand">
-					<h2>SubastaYa ⚡</h2>
-				</div>
-
-				<nav class="sidebar-nav">
-					<a href="/index.html" class="active">🏠 Explorar Catálogo</a>
-					<a href="/crear-subasta.html">➕ Crear Subasta</a>
-					<a href="/billetera.html">💳 Billetera Virtual</a>
-					<a href="/panel.html">🛍️ Mis Compras / Pujas</a>
-					<a href="/panel.html">📦 Mis Publicaciones</a>
-				</nav>
-
-				<div class="sidebar-bottom">
-					<a href="#">⚙️ Configuración</a>
-					<a href="#" class="text-danger">🚪 Cerrar Sesión</a>
-				</div>
-			</aside>
-
-			<!-- CONTENIDO PRINCIPAL -->
-			<!-- CONTENIDO PRINCIPAL -->
-			<main class="main-content">
-
-				<!-- BARRA SUPERIOR (BUSCADOR) -->
-				<header class="top-header">
-					<input type="text" id="buscadorGeneral" class="search-input" placeholder="🔍 Buscar por título, artículo o descripción...">
-            </header>
-
-				<!-- SUBASTA DESTACADA (Cargada por JS) -->
-				<section id="featuredContainer" class="mb-5">
-					<!-- Se inyecta la subasta que termina pronto -->
-				</section>
-
-				<!-- CATÁLOGO GENERAL Y FILTROS -->
-				<div>
-					<div class="d-flex justify-content-between align-items-center mb-4">
-						<h3 class="fw-bold m-0">Todas las Subastas</h3>
-						<button id="btnLimpiar" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">🧹 Limpiar Filtros</button>
+				<!-- BARRA LATERAL (SIDEBAR) -->
+				<aside class="sidebar">
+					<div class="sidebar-brand">
+						<h2>SubastaYa ⚡</h2>
 					</div>
 
-					<div class="filters-bar">
-						<!-- Filtro por Estado -->
-						<div class="filter-group">
-							<label>Estado:</label>
-							<select class="form-select" id="filtroEstado">
-								<option value="todos">Todas</option>
-								<option value="1">Activas (En curso)</option>
-								<option value="0">Próximas</option>
-								<option value="2">Finalizadas</option>
-							</select>
+					<nav class="sidebar-nav">
+						<a href="/index.html" class="active">🏠 Explorar Catálogo</a>
+						<a href="/crear-subasta.html">➕ Crear Subasta</a>
+						<a href="/billetera.html">💳 Billetera Virtual</a>
+						<a href="/panel.html">🛍️ Mis Compras / Pujas</a>
+						<a href="/panel.html">📦 Mis Publicaciones</a>
+					</nav>
+
+					<div class="sidebar-bottom">
+						<a href="#">⚙️ Configuración</a>
+						<a href="#" class="text-danger">🚪 Cerrar Sesión</a>
+					</div>
+				</aside>
+
+				<!-- CONTENIDO PRINCIPAL -->
+				<!-- CONTENIDO PRINCIPAL -->
+				<main class="main-content">
+
+					<!-- BARRA SUPERIOR (BUSCADOR) -->
+					<header class="top-header">
+						<input type="text" id="buscadorGeneral" class="search-input" placeholder="🔍 Buscar por título, artículo o descripción...">
+				</header>
+
+					<!-- SUBASTA DESTACADA (Cargada por JS) -->
+					<section id="featuredContainer" class="mb-5">
+						<!-- Se inyecta la subasta que termina pronto -->
+					</section>
+
+					<!-- CATÁLOGO GENERAL Y FILTROS -->
+					<div>
+						<div class="d-flex justify-content-between align-items-center mb-4">
+							<h3 class="fw-bold m-0">Todas las Subastas</h3>
+							<button id="btnLimpiar" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">🧹 Limpiar Filtros</button>
 						</div>
 
-						<!-- Filtro por Categoría -->
-						<div class="filter-group">
-							<label>Categoría:</label>
-							<select class="form-select" id="filtroCategoria">
-								<option value="todas">Todas las categorías</option>
-								<option value="1">Tecnología</option>
-								<option value="2">Coleccionables</option>
-								<option value="3">Arte</option>
-								<option value="4">Vehículos</option>
-							</select>
-						</div>
+						<div class="filters-bar">
+							<!-- Filtro por Estado -->
+							<div class="filter-group">
+								<label>Estado:</label>
+								<select class="form-select" id="filtroEstado">
+									<option value="todos">Todas</option>
+									<option value="1">Activas (En curso)</option>
+									<option value="0">Próximas</option>
+									<option value="2">Finalizadas</option>
+								</select>
+							</div>
 
-						<!-- Rango de Precios -->
-						<!-- Rango de Precios -->
-						<div class="filter-group">
-							<label>Precio:</label>
-							<div class="price-inputs-wrapper">
-								<input type="number" class="form-control price-input" id="precioMin" placeholder="Mín" min="0">
-									<span class="text-white">-</span>
-									<input type="number" class="form-control price-input" id="precioMax" placeholder="Máx" min="0">
-                        </div>
-						</div>
+							<!-- Filtro por Categoría -->
+							<div class="filter-group">
+								<label>Categoría:</label>
+								<select class="form-select" id="filtroCategoria">
+									<option value="todas">Todas las categorías</option>
+									<option value="1">Tecnología</option>
+									<option value="2">Coleccionables</option>
+									<option value="3">Arte</option>
+									<option value="4">Vehículos</option>
+								</select>
+							</div>
 
-						<!-- Ordenamiento por Tiempo -->
-						<div class="filter-group-vertical">
-							<label>Ordenar por Tiempo:</label>
-							<div class="sort-pills">
-								<button type="button" class="sort-pill active" data-sort="menor-tiempo">⏱️ Cierra pronto</button>
-								<button type="button" class="sort-pill" data-sort="mayor-tiempo">⏳ Mayor duración</button>
+							<!-- Rango de Precios -->
+							<!-- Rango de Precios -->
+							<div class="filter-group">
+								<label>Precio:</label>
+								<div class="price-inputs-wrapper">
+									<input type="number" class="form-control price-input" id="precioMin" placeholder="Mín" min="0">
+										<span class="text-white">-</span>
+										<input type="number" class="form-control price-input" id="precioMax" placeholder="Máx" min="0">
+							</div>
+							</div>
+
+							<!-- Ordenamiento por Tiempo -->
+							<div class="filter-group-vertical">
+								<label>Ordenar por Tiempo:</label>
+								<div class="sort-pills">
+									<button type="button" class="sort-pill active" data-sort="menor-tiempo">⏱️ Cierra pronto</button>
+									<button type="button" class="sort-pill" data-sort="mayor-tiempo">⏳ Mayor duración</button>
+								</div>
+							</div>
+
+							<!-- Ordenamiento por Puja -->
+							<div class="filter-group-vertical">
+								<label>Ordenar por Puja:</label>
+								<div class="sort-pills">
+									<button type="button" class="sort-pill" data-sort="menor-puja">📉 Menor puja</button>
+									<button type="button" class="sort-pill" data-sort="mayor-puja">📈 Mayor puja</button>
+								</div>
 							</div>
 						</div>
 
-						<!-- Ordenamiento por Puja -->
-						<div class="filter-group-vertical">
-							<label>Ordenar por Puja:</label>
-							<div class="sort-pills">
-								<button type="button" class="sort-pill" data-sort="menor-puja">📉 Menor puja</button>
-								<button type="button" class="sort-pill" data-sort="mayor-puja">📈 Mayor puja</button>
-							</div>
+						<!-- GRID DE PRODUCTOS -->
+						<div class="row" id="gridSubastas">
+							<!-- Las cards se inyectarán dinámicamente -->
 						</div>
 					</div>
+				</main>
+			</div>
 
-					<!-- GRID DE PRODUCTOS -->
-					<div class="row" id="gridSubastas">
-						<!-- Las cards se inyectarán dinámicamente -->
-					</div>
-				</div>
-			</main>
-		</div>
-
-		<script src="/js/catalogo.js"></script>
-	</body>
-</html>
+			<script src="/js/catalogo.js"></script>
+		</body>
+	</html>

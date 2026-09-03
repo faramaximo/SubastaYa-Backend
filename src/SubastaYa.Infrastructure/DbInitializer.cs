@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SubastaYa.Domain.Entities; // Ajustá los namespaces según tu estructura
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Infrastructure.Data;
@@ -10,13 +9,54 @@ namespace SubastaYa.Infrastructure.Seed
     {
         public static async Task SeedAsync(SubastaYaDbContext context)
         {
-            // Aplicar migraciones pendientes automáticamente si no se hicieron
             await context.Database.MigrateAsync();
 
-            // Si ya hay usuarios, asumimos que el seed ya fue aplicado
-            if (await context.Usuarios.AnyAsync()) return;
+            // ====================================================================
+            // 💡 TRUCO DE DEMOSTRACIÓN: 
+            // Si la base ya tiene datos, reiniciamos los relojes de las subastas 
+            // de prueba para que siempre veas los 30 min y 2 min al apretar F5.
+            // ====================================================================
+            // ====================================================================
+            // 💡 TRUCO DE DEMOSTRACIÓN: 
+            // ====================================================================
+            // ====================================================================
+            // 💡 REINICIO DE RELOJES PARA LA DEFENSA DEL TP (Módulo 1)
+            // ====================================================================
+            if (await context.Usuarios.AnyAsync())
+            {
+                // Traemos las subastas ordenadas por ID
+                var subastasExistentes = await context.Subastas.OrderBy(s => s.Id).ToListAsync();
 
-            // 1. Categorías obligatorias
+                if (subastasExistentes.Count >= 5)
+                {
+                    // 1. Activa estándar: Cierra en 30 min
+                    subastasExistentes[0].FechaFin = DateTime.UtcNow.AddMinutes(30);
+                    subastasExistentes[0].Estado = EstadoSubasta.Activa;
+
+                    // 2. Activa crítica: Cierra en menos de 2 min (1 min 50 seg)
+                    subastasExistentes[1].FechaFin = DateTime.UtcNow.AddSeconds(110);
+                    subastasExistentes[1].Estado = EstadoSubasta.Activa;
+
+                    // 3. Próxima: Inicio programado a +24 hs
+                    subastasExistentes[2].FechaInicio = DateTime.UtcNow.AddHours(24);
+                    subastasExistentes[2].FechaFin = DateTime.UtcNow.AddHours(48);
+                    subastasExistentes[2].Estado = EstadoSubasta.Programada;
+
+                    // 4. Vencida con ganador: Fecha fin en el pasado
+                    subastasExistentes[3].FechaFin = DateTime.UtcNow.AddMinutes(-10);
+                    subastasExistentes[3].Estado = EstadoSubasta.Activa;
+
+                    // 5. Vencida desierta: Fecha fin en el pasado lejano
+                    subastasExistentes[4].FechaFin = DateTime.UtcNow.AddHours(-2);
+                    subastasExistentes[4].Estado = EstadoSubasta.Activa;
+
+                    // Guardamos los cambios forzadamente en la base de datos
+                    await context.SaveChangesAsync();
+                    Console.WriteLine("✅ TIEMPOS REINICIADOS A LOS CASOS DE PRUEBA DEL TP");
+                }
+                return; // Cortamos acá para no duplicar toda la base
+            }
+            // 1. CATEGORÍAS OBLIGATORIAS (Incluyendo Arte)
             var categorias = new List<Categoria>
             {
                 new Categoria { Nombre = "Tecnología", ImagenUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f" },
@@ -27,7 +67,7 @@ namespace SubastaYa.Infrastructure.Seed
             context.Categorias.AddRange(categorias);
             await context.SaveChangesAsync();
 
-            // 2. Usuarios obligatorios y sus Billeteras
+            // 2. USUARIOS Y BILLETERAS OBLIGATORIAS
             var usuarios = new List<Usuario>
             {
                 new Usuario { Email = "vendedor@test.com", Nombre = "Vendedor Test", PasswordHash = "hash123", FechaRegistro = DateTime.UtcNow },
@@ -38,36 +78,51 @@ namespace SubastaYa.Infrastructure.Seed
             context.Usuarios.AddRange(usuarios);
             await context.SaveChangesAsync();
 
-            // Billeteras asociadas según la consigna
             var billeteras = new List<Billetera>
             {
-                new Billetera { UsuarioId = usuarios[0].Id, SaldoTotal = 0, SaldoRetenido = 0 }, // Vendedor
-                new Billetera { UsuarioId = usuarios[1].Id, SaldoTotal = 150000, SaldoRetenido = 45000 }, // Comprador 1 (líder)
-                new Billetera { UsuarioId = usuarios[2].Id, SaldoTotal = 200000, SaldoRetenido = 0 }, // Comprador 2
-                new Billetera { UsuarioId = usuarios[3].Id, SaldoTotal = 500, SaldoRetenido = 0 } // Sin fondos
+                new Billetera { UsuarioId = usuarios[0].Id, SaldoTotal = 0, SaldoRetenido = 0 },
+                new Billetera { UsuarioId = usuarios[1].Id, SaldoTotal = 150000, SaldoRetenido = 45000 },
+                new Billetera { UsuarioId = usuarios[2].Id, SaldoTotal = 200000, SaldoRetenido = 0 },
+                new Billetera { UsuarioId = usuarios[3].Id, SaldoTotal = 500, SaldoRetenido = 0 }
             };
             context.Billeteras.AddRange(billeteras);
             await context.SaveChangesAsync();
 
-            // 3. Subastas de prueba (Los 5 casos obligatorios)
+            // 3. LAS 5 SUBASTAS DEL TP
             var subastas = new List<Subasta>
             {
                 // Caso 1: Activa estándar (Cierra en 30 min)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[0].Id, Titulo = "Casco VR Edición Coleccionista", Descripcion = "Casco de realidad virtual tope de gama.", UrlImagen = categorias[0].ImagenUrl, PrecioBase = 10000, IncrementoMinimo = 2000, FechaInicio = DateTime.UtcNow.AddMinutes(-30), FechaFin = DateTime.UtcNow.AddMinutes(30), Estado = EstadoSubasta.Activa },
+                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[0].Id, Titulo = "Casco VR Edición Coleccionista", Descripcion = "Casco tope de gama.", UrlImagen = categorias[0].ImagenUrl, PrecioBase = 10000, IncrementoMinimo = 2000, FechaInicio = DateTime.UtcNow.AddMinutes(-30), FechaFin = DateTime.UtcNow.AddMinutes(30), Estado = EstadoSubasta.Activa },
                 
-                // Caso 2: Activa crítica (Cierra en menos de 2 min - Para Anti-Sniping)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[1].Id, Titulo = "Consola Retro Edición Limitada", Descripcion = "Consola clásica de colección.", UrlImagen = categorias[1].ImagenUrl, PrecioBase = 50000, IncrementoMinimo = 5000, FechaInicio = DateTime.UtcNow.AddMinutes(-58), FechaFin = DateTime.UtcNow.AddMinutes(1), Estado = EstadoSubasta.Activa },
+                // Caso 2: Activa crítica (Cierra en 1 min 50 seg - Anti-Sniping)
+                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[1].Id, Titulo = "Consola Retro Edición Limitada", Descripcion = "Consola clásica.", UrlImagen = categorias[1].ImagenUrl, PrecioBase = 50000, IncrementoMinimo = 5000, FechaInicio = DateTime.UtcNow.AddMinutes(-58), FechaFin = DateTime.UtcNow.AddSeconds(110), Estado = EstadoSubasta.Activa },
                 
-                // Caso 3: Próxima (Inicia a futuro)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[3].Id, Titulo = "Llave NFT Prototipo Deportivo", Descripcion = "Acceso exclusivo a vehículo digital.", UrlImagen = categorias[3].ImagenUrl, PrecioBase = 100000, IncrementoMinimo = 10000, FechaInicio = DateTime.UtcNow.AddHours(24), FechaFin = DateTime.UtcNow.AddHours(48), Estado = EstadoSubasta.Programada },
+                // Caso 3: Próxima (+24hs)
+                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[3].Id, Titulo = "Llave NFT Prototipo Deportivo", Descripcion = "Acceso exclusivo.", UrlImagen = categorias[3].ImagenUrl, PrecioBase = 100000, IncrementoMinimo = 10000, FechaInicio = DateTime.UtcNow.AddHours(24), FechaFin = DateTime.UtcNow.AddHours(48), Estado = EstadoSubasta.Programada },
                 
-                // Caso 4: Vencida con ganador (Para el Worker)
-               new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[2].Id, Titulo = "Render Abstracto Ciberpunk #3", Descripcion = "Obra de arte digital 3D.", UrlImagen = categorias[2].ImagenUrl, PrecioBase = 15000, IncrementoMinimo = 1000, FechaInicio = DateTime.UtcNow.AddHours(-3), FechaFin = DateTime.UtcNow.AddMinutes(-10), Estado = EstadoSubasta.Activa },
-                // Caso 5: Vencida desierta (Sin ofertas)
+                // Caso 4: Vencida con ganador
+                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[2].Id, Titulo = "Render Abstracto Ciberpunk #3", Descripcion = "Arte digital.", UrlImagen = categorias[2].ImagenUrl, PrecioBase = 15000, IncrementoMinimo = 1000, FechaInicio = DateTime.UtcNow.AddHours(-3), FechaFin = DateTime.UtcNow.AddMinutes(-10), Estado = EstadoSubasta.Activa },
+                
+                // Caso 5: Vencida desierta (Sin pujas)
                 new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[0].Id, Titulo = "Cable HDMI Dañado", Descripcion = "Objeto sin uso.", UrlImagen = categorias[0].ImagenUrl, PrecioBase = 1000, IncrementoMinimo = 100, FechaInicio = DateTime.UtcNow.AddHours(-5), FechaFin = DateTime.UtcNow.AddHours(-2), Estado = EstadoSubasta.Activa }
             };
-
             context.Subastas.AddRange(subastas);
+            await context.SaveChangesAsync();
+
+            // 4. PUJAS OBLIGATORIAS (Punto 3.3 del TP)
+            // 4. PUJAS OBLIGATORIAS (Punto 3.3 del TP)
+            var pujas = new List<Puja>
+            {
+                // Puja 1: Comprador 2 oferta $20.000 en el Casco VR
+                new Puja { SubastaId = subastas[0].Id, CompradorId = usuarios[2].Id, Monto = 20000, FechaPuja = DateTime.UtcNow.AddMinutes(-20) },
+                
+                // Puja 2: Comprador 1 (Líder) supera con $45.000 en el Casco VR
+                new Puja { SubastaId = subastas[0].Id, CompradorId = usuarios[1].Id, Monto = 45000, FechaPuja = DateTime.UtcNow.AddMinutes(-10) },
+                
+                // Puja 3: Para el caso 4 (Vencida con ganador)
+                new Puja { SubastaId = subastas[3].Id, CompradorId = usuarios[1].Id, Monto = 18000, FechaPuja = DateTime.UtcNow.AddHours(-1) }
+            };
+            context.Pujas.AddRange(pujas);
             await context.SaveChangesAsync();
         }
     }

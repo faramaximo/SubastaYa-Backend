@@ -26,6 +26,7 @@ namespace SubastaYa.WebApi.Controllers
             [FromQuery] string? busqueda,
             [FromQuery] string orderBy = "menor-tiempo")
         {
+            //El controlador llama al servicio
             var subastas = await _auctionService.ObtenerSubastasAsync(estado, categoriaId, precioMin, precioMax, busqueda, orderBy);
             return Ok(subastas);
         }
