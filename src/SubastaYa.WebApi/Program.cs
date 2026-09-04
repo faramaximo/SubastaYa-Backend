@@ -8,14 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Obtener cadena de conexión desde appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 2. Registrar DbContext
+// 2. Registrar DbContext con MySQL
 builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-
-// 🔴 2. REGISTRAR AQUÍ LOS SERVICIOS (Inyección de Dependencias)
+// 3. Registrar Inyección de Dependencias
 builder.Services.AddScoped<IAuctionService, AuctionService>();
-
+builder.Services.AddScoped<IWalletService, WalletService>(); 
 builder.Services.AddControllers();
 
 // Encendemos el proceso en segundo plano (Background Worker)

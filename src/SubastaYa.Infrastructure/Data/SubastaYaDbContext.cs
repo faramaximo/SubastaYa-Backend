@@ -23,9 +23,15 @@ public class SubastaYaDbContext : DbContext
         // Mapeo preciso de decimales
         modelBuilder.Entity<Billetera>(b =>
         {
+            b.HasKey(x => x.Id);
+
             b.Property(x => x.SaldoTotal).HasPrecision(18, 2);
             b.Property(x => x.SaldoRetenido).HasPrecision(18, 2);
-            b.Property(x => x.Version).IsRowVersion(); // Manejado automáticamente por Pomelo/MySQL
+
+            // Asigna UUID() por defecto en MySQL si C# envía el campo vacío
+            b.Property(x => x.Version)
+             .IsConcurrencyToken()
+             .HasDefaultValueSql("(UUID())");
         });
 
         modelBuilder.Entity<Subasta>(s =>
@@ -46,6 +52,11 @@ public class SubastaYaDbContext : DbContext
         modelBuilder.Entity<TransaccionLedger>(t =>
         {
             t.Property(x => x.Monto).HasPrecision(18, 2);
+
+            // 👈 AGREGAR ESTA LÍNEA: Guarda 'Deposito', 'Retencion', etc. como texto en MySQL
+            t.Property(x => x.Tipo)
+             .HasConversion<string>()
+             .HasMaxLength(20);
         });
     }
 }
