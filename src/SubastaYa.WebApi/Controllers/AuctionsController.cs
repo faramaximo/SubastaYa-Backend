@@ -3,6 +3,9 @@ using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
 using System.Threading.Tasks;
 
+//su unica responsabilidad es recibir la petición HTTP, delegar el trabajo a _auctionService y retornar un HTTP 200 ( ok).
+//Inyección de Dependencias: Al usar IAuctionService en el constructor del controlador, estás respetando el Principio de Inversión de Dependencias (la 'D' de SOLID).
+
 namespace SubastaYa.WebApi.Controllers
 {
     [Route("api/[controller]")]

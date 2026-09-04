@@ -5,41 +5,49 @@
 });
 
 // ==========================================
-// 1. CONFIGURACIÓN DE EVENTOS (Setup)
+// 1. CONFIGURACIÓN DE EVENTOS (Blindada)
 // ==========================================
 function configurarEventosFiltros() {
     const idsFiltros = ["filtroEstado", "filtroCategoria", "precioMin", "precioMax", "buscadorGeneral"];
+    
+    // Escudo: Solo agregamos el evento si el filtro existe en esta pantalla
     idsFiltros.forEach(id => {
-        document.getElementById(id).addEventListener("input", obtenerCatalogo);
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.addEventListener("input", obtenerCatalogo);
+        }
     });
 
-    const pills = document.querySelectorAll(".sort-pill");
-    pills.forEach(pill => {
+    document.querySelectorAll(".sort-pill").forEach(pill => {
         pill.addEventListener("click", (e) => {
-            pills.forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".sort-pill").forEach(p => p.classList.remove("active"));
             e.target.classList.add("active");
             obtenerCatalogo();
         });
     });
 
-    document.getElementById("btnLimpiar").addEventListener("click", limpiarFiltros);
+    const btnLimpiar = document.getElementById("btnLimpiar");
+    if (btnLimpiar) btnLimpiar.addEventListener("click", limpiarFiltros);
 }
 
 function limpiarFiltros() {
-    document.getElementById("filtroEstado").value = "todos";
-    document.getElementById("filtroCategoria").value = "todas";
-    document.getElementById("precioMin").value = "";
-    document.getElementById("precioMax").value = "";
-    document.getElementById("buscadorGeneral").value = "";
+    const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val; };
+    
+    setVal("filtroEstado", "todos");
+    setVal("filtroCategoria", "todas");
+    setVal("precioMin", "");
+    setVal("precioMax", "");
+    setVal("buscadorGeneral", "");
     
     document.querySelectorAll(".sort-pill").forEach(p => p.classList.remove("active"));
-    document.querySelector('[data-sort="menor-tiempo"]').classList.add("active");
+    const btnTiempo = document.querySelector('[data-sort="menor-tiempo"]');
+    if (btnTiempo) btnTiempo.classList.add("active");
 
     obtenerCatalogo();
 }
 
 // ==========================================
-// 2. COMUNICACIÓN CON LA API (Capa de Red)
+// 2. COMUNICACIÓN CON LA API
 // ==========================================
 async function obtenerCatalogo() {
     const url = construirUrlConFiltros();
@@ -52,15 +60,20 @@ async function obtenerCatalogo() {
         procesarYRenderizarSubastas(subastas);
     } catch (error) {
         console.error("Error de conexión:", error);
+        const grid = document.getElementById("gridSubastas");
+        if (grid) grid.innerHTML = `<div class="col-12 text-center text-danger py-5">Error de red. Verificá que el backend de C# esté corriendo.</div>`;
     }
 }
 
 function construirUrlConFiltros() {
-    const estado = document.getElementById("filtroEstado").value;
-    const categoria = document.getElementById("filtroCategoria").value;
-    const precioMin = document.getElementById("precioMin").value;
-    const precioMax = document.getElementById("precioMax").value;
-    const busqueda = document.getElementById("buscadorGeneral").value;
+    const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
+    
+    const estado = getVal("filtroEstado");
+    const categoria = getVal("filtroCategoria");
+    const precioMin = getVal("precioMin");
+    const precioMax = getVal("precioMax");
+    const busqueda = getVal("buscadorGeneral");
+    
     const ordenActivo = document.querySelector(".sort-pill.active");
     const orden = ordenActivo ? ordenActivo.getAttribute("data-sort") : "menor-tiempo";
 
@@ -75,42 +88,44 @@ function construirUrlConFiltros() {
 }
 
 // ==========================================
-// 3. LÓGICA DE RENDERIZADO (Capa de Presentación)
+// 3. LÓGICA DE RENDERIZADO (El Dibujante)
 // ==========================================
 function procesarYRenderizarSubastas(subastas) {
     const grid = document.getElementById("gridSubastas");
     const featuredContainer = document.getElementById("featuredContainer");
+    
+    // 🛡️ ESCUDO: Si no estamos en el index.html, no hace nada
+    if (!grid || !featuredContainer) return; 
+
     grid.innerHTML = "";
     featuredContainer.innerHTML = "";
 
-    if (subastas.length === 0) {
+    if (!Array.isArray(subastas) || subastas.length === 0) {
         grid.innerHTML = `<div class="col-12 text-center text-muted py-5">No se encontraron subastas.</div>`;
         return;
     }
 
-    // Identificar la subasta destacada (la activa que vence más pronto)
+    // Buscamos las Activas (Estado === 1) para destacar la que venza más rápido
     let subastasActivas = subastas.filter(s => s.estado === 1 && calcularDiferenciaTiempo(s.fechaFin) > 0);
     
     if (subastasActivas.length > 0) {
-        // Ordenamos por la que vence primero
         subastasActivas.sort((a, b) => calcularDiferenciaTiempo(a.fechaFin) - calcularDiferenciaTiempo(b.fechaFin));
-        const destacada = subastasActivas[0];
-        
-        renderizarDestacada(destacada, featuredContainer);
-        // Quitamos la destacada de la lista general
-        subastas = subastas.filter(s => s.id !== destacada.id);
+        renderizarDestacada(subastasActivas[0], featuredContainer);
+        subastas = subastas.filter(s => s.id !== subastasActivas[0].id);
     }
 
-    // Renderizar el resto de las tarjetas
     subastas.forEach(subasta => renderizarTarjeta(subasta, grid));
 }
 
 function renderizarTarjeta(subasta, contenedor) {
+    const inicioStr = subasta.fechaInicio || "";
+    const finStr = subasta.fechaFin || "";
+
     contenedor.innerHTML += `
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="auction-card">
                 <div class="card-img-container">
-                    <span class="category-badge">${subasta.categoriaNombre}</span>
+                    <span class="category-badge">${subasta.categoriaNombre || 'Categoría'}</span>
                     <img src="${subasta.urlImagen}" alt="${subasta.titulo}">
                 </div>
                 <div class="card-body">
@@ -118,13 +133,15 @@ function renderizarTarjeta(subasta, contenedor) {
                     <div class="card-info-row">
                         <div>
                             <span class="info-label">Oferta Actual</span>
-                            <span class="info-value">$${subasta.ofertaMasAlta}</span>
+                            <span class="info-value">$${subasta.ofertaMasAlta || subasta.precioBase}</span>
                         </div>
                         <div class="text-end">
-                            <span class="info-label">Cierra en</span>
-                            <span class="info-value timer-highlight live-timer" data-endtime="${subasta.fechaFin}">
-                                ${formatearFechaRestante(subasta.fechaFin)}
+                            <span class="info-label dynamic-label">Calculando...</span>
+                            <span class="info-value live-timer" data-inicio="${inicioStr}" data-fin="${finStr}">
+                                --:--:--
                             </span>
+                            <!-- 👇 NUEVO: Contenedor oculto para la duración 👇 -->
+                            <div class="duracion-subasta mt-1" style="font-size: 0.75rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                         </div>
                     </div>
                     <a href="/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
@@ -141,18 +158,20 @@ function renderizarDestacada(subasta, contenedor) {
                 <img src="${subasta.urlImagen}" alt="${subasta.titulo}">
             </div>
             <div class="featured-details">
-                <span class="featured-badge">🔥 ¡Termina pronto! - ${subasta.categoriaNombre}</span>
+                <span class="featured-badge">🔥 ¡Termina pronto!</span>
                 <h2 class="featured-title">${subasta.titulo}</h2>
                 <div class="featured-info">
                     <div>
                         <span class="f-label">Oferta Actual</span>
-                        <span class="f-value">$${subasta.ofertaMasAlta}</span>
+                        <span class="f-value">$${subasta.ofertaMasAlta || subasta.precioBase}</span>
                     </div>
                     <div>
-                        <span class="f-label">Tiempo Restante</span>
-                        <span class="f-value f-timer live-timer" data-endtime="${subasta.fechaFin}">
-                            ${formatearFechaRestante(subasta.fechaFin)}
+                        <span class="f-label dynamic-label">Calculando...</span>
+                        <span class="f-value f-timer live-timer timer-highlight" data-inicio="${subasta.fechaInicio || ''}" data-fin="${subasta.fechaFin || ''}">
+                            --:--:--
                         </span>
+                        <!-- 👇 NUEVO: Contenedor oculto para la duración 👇 -->
+                        <div class="duracion-subasta mt-1" style="font-size: 0.85rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                     </div>
                 </div>
                 <a href="/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
@@ -162,23 +181,25 @@ function renderizarDestacada(subasta, contenedor) {
 }
 
 // ==========================================
-// 4. MANEJO DEL TIEMPO (Cálculos puros)
+// 4. MANEJO DEL TIEMPO EN TIEMPO REAL
 // ==========================================
 function calcularDiferenciaTiempo(fechaStr) {
-    // FIX UTC DEFINITIVO: Si el string no termina en Z, se lo agregamos forzadamente
-    // Esto evita que JavaScript le sume 3 horas por estar en Argentina.
+    if (!fechaStr) return 0;
     const fechaUtcSegura = fechaStr.endsWith('Z') ? fechaStr : fechaStr + 'Z';
     return new Date(fechaUtcSegura).getTime() - new Date().getTime();
 }
 
-function formatearFechaRestante(fechaStr) {
-    const diferencia = calcularDiferenciaTiempo(fechaStr);
+function formatearFechaRestante(diferenciaMs) {
+    if (diferenciaMs <= 0) return "00:00:00";
     
-    if (diferencia <= 0) return "Finalizada";
-    
-    const horas = Math.floor(diferencia / (1000 * 60 * 60));
-    const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-    const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+    const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((diferenciaMs % (1000 * 60)) / 1000);
+
+    if (dias > 0) {
+        return `${dias}d ${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m`;
+    }
 
     return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
 }
@@ -186,16 +207,56 @@ function formatearFechaRestante(fechaStr) {
 function iniciarTemporizadorGlobal() {
     setInterval(() => {
         document.querySelectorAll(".live-timer").forEach(timer => {
-            const endTime = timer.getAttribute("data-endtime");
-            if (endTime) {
-                timer.innerText = formatearFechaRestante(endTime);
-                
-                // Recargar catálogo automáticamente si una subasta llega a cero
-                if (timer.innerText === "Finalizada" && timer.dataset.reloaded !== "true") {
-                    timer.dataset.reloaded = "true";
-                    setTimeout(obtenerCatalogo, 2000); 
+            const inicioStr = timer.getAttribute("data-inicio");
+            const finStr = timer.getAttribute("data-fin");
+            const label = timer.previousElementSibling; 
+            const duracionDiv = timer.nextElementSibling; // Capturamos el nuevo texto de duración
+
+            if (!label) return;
+
+            const faltanParaInicio = calcularDiferenciaTiempo(inicioStr);
+            const faltanParaFin = calcularDiferenciaTiempo(finStr);
+
+            if (faltanParaInicio > 0) {
+                // ESTADO: PRÓXIMA (Azul)
+                label.innerText = "Comienza en";
+                timer.className = timer.classList.contains('f-timer') 
+                    ? "f-value f-timer live-timer text-info" 
+                    : "info-value live-timer text-info fw-bold";
+                timer.innerText = formatearFechaRestante(faltanParaInicio);
+
+                // 👇 Lógica para calcular y mostrar la duración total de la subasta
+                if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) {
+                    const msInicio = new Date(inicioStr.endsWith('Z') ? inicioStr : inicioStr + 'Z').getTime();
+                    const msFin = new Date(finStr.endsWith('Z') ? finStr : finStr + 'Z').getTime();
+                    const duracionTotal = msFin - msInicio;
+                    
+                    duracionDiv.innerText = `Durará: ${formatearFechaRestante(duracionTotal)}`;
+                    duracionDiv.style.display = "block"; // Lo hacemos visible
                 }
+            } 
+            else if (faltanParaFin > 0) {
+                // ESTADO: ACTIVA (Rojo)
+                label.innerText = "Cierra en";
+                timer.className = timer.classList.contains('f-timer') 
+                    ? "f-value f-timer live-timer timer-highlight" 
+                    : "info-value live-timer timer-highlight fw-bold";
+                timer.innerText = formatearFechaRestante(faltanParaFin);
+                
+                // Ocultamos la duración porque la subasta ya está corriendo
+                if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) duracionDiv.style.display = "none";
+            } 
+            else {
+                // ESTADO: FINALIZADA (Gris)
+                label.innerText = "Estado";
+                timer.className = timer.classList.contains('f-timer') 
+                    ? "f-value f-timer live-timer text-white-50" 
+                    : "info-value live-timer text-white-50 fw-bold";
+                timer.innerText = "Finalizada";
+
+                // Ocultamos la duración
+                if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) duracionDiv.style.display = "none";
             }
         });
-    }, 1000);
+    }, 1000); 
 }

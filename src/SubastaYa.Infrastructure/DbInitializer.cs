@@ -12,14 +12,6 @@ namespace SubastaYa.Infrastructure.Seed
             await context.Database.MigrateAsync();
 
             // ====================================================================
-            // 💡 TRUCO DE DEMOSTRACIÓN: 
-            // Si la base ya tiene datos, reiniciamos los relojes de las subastas 
-            // de prueba para que siempre veas los 30 min y 2 min al apretar F5.
-            // ====================================================================
-            // ====================================================================
-            // 💡 TRUCO DE DEMOSTRACIÓN: 
-            // ====================================================================
-            // ====================================================================
             // 💡 REINICIO DE RELOJES PARA LA DEFENSA DEL TP (Módulo 1)
             // ====================================================================
             if (await context.Usuarios.AnyAsync())
@@ -56,7 +48,10 @@ namespace SubastaYa.Infrastructure.Seed
                 }
                 return; // Cortamos acá para no duplicar toda la base
             }
-            // 1. CATEGORÍAS OBLIGATORIAS (Incluyendo Arte)
+
+            // ====================================================================
+            // 1. CATEGORÍAS OBLIGATORIAS
+            // ====================================================================
             var categorias = new List<Categoria>
             {
                 new Categoria { Nombre = "Tecnología", ImagenUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f" },
@@ -67,16 +62,24 @@ namespace SubastaYa.Infrastructure.Seed
             context.Categorias.AddRange(categorias);
             await context.SaveChangesAsync();
 
+
+            // ====================================================================
             // 2. USUARIOS Y BILLETERAS OBLIGATORIAS
+            // ====================================================================
+
+            // Encriptamos una contraseña genérica ("123456") para todos
+            string passwordHasheada = BCrypt.Net.BCrypt.HashPassword("123456");
+
             var usuarios = new List<Usuario>
             {
-                new Usuario { Email = "vendedor@test.com", Nombre = "Vendedor Test", PasswordHash = "hash123", FechaRegistro = DateTime.UtcNow },
-                new Usuario { Email = "comprador1@test.com", Nombre = "Comprador Líder", PasswordHash = "hash123", FechaRegistro = DateTime.UtcNow },
-                new Usuario { Email = "comprador2@test.com", Nombre = "Comprador Activo", PasswordHash = "hash123", FechaRegistro = DateTime.UtcNow },
-                new Usuario { Email = "sinfondos@test.com", Nombre = "Usuario Sin Saldo", PasswordHash = "hash123", FechaRegistro = DateTime.UtcNow }
+                new Usuario { Nombre = "Vendedor Test", Email = "vendedor@test.com", PasswordHash = passwordHasheada, FechaRegistro = DateTime.UtcNow },
+                new Usuario { Nombre = "Comprador Líder", Email = "comprador1@test.com", PasswordHash = passwordHasheada, FechaRegistro = DateTime.UtcNow },
+                new Usuario { Nombre = "Comprador Dos", Email = "comprador2@test.com", PasswordHash = passwordHasheada, FechaRegistro = DateTime.UtcNow },
+                new Usuario { Nombre = "Usuario Sin Fondos", Email = "sinfondos@test.com", PasswordHash = passwordHasheada, FechaRegistro = DateTime.UtcNow }
             };
+
             context.Usuarios.AddRange(usuarios);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); // Guardamos para que se generen los IDs
 
             var billeteras = new List<Billetera>
             {
@@ -88,7 +91,10 @@ namespace SubastaYa.Infrastructure.Seed
             context.Billeteras.AddRange(billeteras);
             await context.SaveChangesAsync();
 
+
+            // ====================================================================
             // 3. LAS 5 SUBASTAS DEL TP
+            // ====================================================================
             var subastas = new List<Subasta>
             {
                 // Caso 1: Activa estándar (Cierra en 30 min)
@@ -109,8 +115,10 @@ namespace SubastaYa.Infrastructure.Seed
             context.Subastas.AddRange(subastas);
             await context.SaveChangesAsync();
 
+
+            // ====================================================================
             // 4. PUJAS OBLIGATORIAS (Punto 3.3 del TP)
-            // 4. PUJAS OBLIGATORIAS (Punto 3.3 del TP)
+            // ====================================================================
             var pujas = new List<Puja>
             {
                 // Puja 1: Comprador 2 oferta $20.000 en el Casco VR

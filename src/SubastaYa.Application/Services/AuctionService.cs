@@ -30,8 +30,20 @@ public class AuctionService : IAuctionService
             .AsQueryable();
 
         // Filtro por Estado (Corregido: convertimos el número que llega de la web al Enum)
+        // Filtro por Estado: Si el usuario pide Finalizadas (2), le mandamos las Finalizadas (2) Y las Desiertas (3)
         if (estado.HasValue)
-            query = query.Where(s => s.Estado == (EstadoSubasta)estado.Value);
+        {
+            if (estado.Value == 2)
+            {
+                // Trae ambas porque ambas están terminadas
+                query = query.Where(s => s.Estado == EstadoSubasta.Finalizada || s.Estado == EstadoSubasta.Desierta);
+            }
+            else
+            {
+                // Para Activas (1) o Próximas (0), filtra normal
+                query = query.Where(s => s.Estado == (EstadoSubasta)estado.Value);
+            }
+        }
 
         // Filtro por Categoría
         if (categoriaId.HasValue)
@@ -76,6 +88,9 @@ public class AuctionService : IAuctionService
             CategoriaNombre = s.Categoria?.Nombre ?? "",
             UrlImagen = s.UrlImagen,
             OfertaMasAlta = s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase, // Valor real de la puja actual
+
+
+            FechaInicio = s.FechaInicio, // 👈 ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA!
             FechaFin = s.FechaFin,
             CantidadOfertas = s.Pujas.Count,
             Estado = s.Estado

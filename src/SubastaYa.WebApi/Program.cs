@@ -17,6 +17,9 @@ builder.Services.AddDbContext<SubastaYaDbContext>(options =>
 builder.Services.AddScoped<IAuctionService, AuctionService>();
 
 builder.Services.AddControllers();
+
+// Encendemos el proceso en segundo plano (Background Worker)
+builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
