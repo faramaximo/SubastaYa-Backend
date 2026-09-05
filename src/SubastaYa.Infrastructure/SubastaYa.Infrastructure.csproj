@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\SubastaYa.Application\SubastaYa.Application.csproj" />
     <ProjectReference Include="..\SubastaYa.Domain\SubastaYa.Domain.csproj" />
   </ItemGroup>
 
@@ -23,6 +24,10 @@
 
   <ItemGroup>
     <None Include="C:\Users\eirk\source\repos\SubastaYa-Backend\src\SubastaYa.Infrastructure\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistence\Configurations\" />
   </ItemGroup>
 
 </Project>

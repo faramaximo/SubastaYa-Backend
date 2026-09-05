@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
-using SubastaYa.Application.Services;
+using SubastaYa.Application.UseCases.Auth.Handlers;
 using SubastaYa.Infrastructure.Data;
+using SubastaYa.Infrastructure.Repositories;
+using SubastaYa.WebApi.Middlewares;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,21 +17,48 @@ builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // 3. Registrar Inyección de Dependencias
-builder.Services.AddScoped<IAuctionService, AuctionService>();
-builder.Services.AddScoped<IWalletService, WalletService>(); 
+
 builder.Services.AddControllers();
+
+// INFRASTRUCTURE: UnitOfWork y Repositorios
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>(); // Se crea una instancia por request HTTP
+//builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+//builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+
+// APPLICATION: Handlers de los Casos de Uso
+builder.Services.AddScoped<RegisterCommandHandler>(); 
+builder.Services.AddScoped<LoginQueryHandler>(); 
 
 // Encendemos el proceso en segundo plano (Background Worker)
 builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddCors(options => {
+    options.AddPolicy("PermitirFrontend", policy => {
+        policy.WithOrigins("http://localhost:5191", "https://localhost:5191") // ¡Aquí estaba el detalle!
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+
+//Middlewares
+
+
+
+
 var app = builder.Build();
 
 
 
-// 🔴 IMPORTANTE: Habilita el uso de archivos estáticos (HTML, CSS, JS) desde la carpeta wwwroot
-app.UseStaticFiles();
+
+app.UseMiddleware<ExceptionMiddleware>();
+
+
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -36,8 +67,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("PermitirFrontend");
+
 app.UseAuthorization();
 app.MapControllers();
+
+
+
 // ============================================================
 // DISPARADOR DEL SEEDER AL ARRANCAR LA API
 // Esto ejecuta DbInitializer cada vez que apretás F5

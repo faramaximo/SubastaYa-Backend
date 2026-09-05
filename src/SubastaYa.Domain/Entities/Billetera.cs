@@ -1,26 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using SubastaYa.Domain.Exceptions;
 
-namespace SubastaYa.Domain.Entities
+public class Billetera
 {
-    public class Billetera
+    public int Id { get; private set; }
+    public int UsuarioId { get; private set; }
+    public decimal SaldoTotal { get; private set; }
+    public decimal SaldoRetenido { get; private set; }
+    public decimal SaldoDisponible => SaldoTotal - SaldoRetenido;
+    public Guid Version { get; private set; }
+
+    // Constructor vacío requerido por Entity Framework
+    protected Billetera() { }
+
+    // Constructor para cuando creamos una billetera nueva
+    public Billetera(int usuarioId)
     {
-        public int Id { get; set; }
-        public int UsuarioId { get; set; }
-        public decimal SaldoTotal { get; set; }
-        public decimal SaldoRetenido { get; set; }
+        UsuarioId = usuarioId;
+        SaldoTotal = 0;
+        SaldoRetenido = 0;
+        Version = Guid.NewGuid();
+    }
 
-        // Saldo disponible calculado
-        public decimal SaldoDisponible => SaldoTotal - SaldoRetenido;
+    // Agregá este constructor abajo del que ya tenías en Billetera.cs
+    public Billetera(int usuarioId, decimal saldoTotal, decimal saldoRetenido)
+    {
+        UsuarioId = usuarioId;
+        SaldoTotal = saldoTotal;
+        SaldoRetenido = saldoRetenido;
+        Version = Guid.NewGuid();
+    }
 
-        // Token de concurrencia optimista compatible con MySQL
-        [ConcurrencyCheck]
-        public Guid Version { get; set; } = Guid.NewGuid();
 
-        // Navegación
-        public Usuario Usuario { get; set; } = null!;
-        public ICollection<TransaccionLedger> Transacciones { get; set; } = new List<TransaccionLedger>();
+    // El comportamiento vive ADENTRO de la entidad
+    public void Depositar(decimal monto)
+    {
+        if (monto <= 0) throw new DomainException("El monto a depositar debe ser mayor a cero.");
+
+        SaldoTotal += monto;
+        Version = Guid.NewGuid(); // La entidad controla su propia versión
+    }
+
+    public void ProcesarPagoSubasta(decimal monto)
+    {
+        if (monto <= 0) throw new DomainException("El monto a pagar debe ser mayor a cero.");
+
+        // La entidad se encarga de sus propias matemáticas
+        SaldoRetenido -= monto;
+        SaldoTotal -= monto;
+        Version = Guid.NewGuid();
     }
 }

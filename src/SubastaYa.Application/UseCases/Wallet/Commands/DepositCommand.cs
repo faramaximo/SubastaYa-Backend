@@ -1,0 +1,1 @@
+﻿public record DepositCommand(int UsuarioId, decimal Monto);

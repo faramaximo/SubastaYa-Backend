@@ -83,10 +83,10 @@ namespace SubastaYa.Infrastructure.Seed
 
             var billeteras = new List<Billetera>
             {
-                new Billetera { UsuarioId = usuarios[0].Id, SaldoTotal = 0, SaldoRetenido = 0 },
-                new Billetera { UsuarioId = usuarios[1].Id, SaldoTotal = 150000, SaldoRetenido = 45000 },
-                new Billetera { UsuarioId = usuarios[2].Id, SaldoTotal = 200000, SaldoRetenido = 0 },
-                new Billetera { UsuarioId = usuarios[3].Id, SaldoTotal = 500, SaldoRetenido = 0 }
+                new Billetera(usuarios[0].Id, 0, 0),
+                new Billetera(usuarios[1].Id, 150000, 45000),
+                new Billetera(usuarios[2].Id, 200000, 0),
+                new Billetera(usuarios[3].Id, 500, 0)
             };
             context.Billeteras.AddRange(billeteras);
             await context.SaveChangesAsync();

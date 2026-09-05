@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.DTOs;
-using SubastaYa.Domain.Entities;
-using SubastaYa.Infrastructure.Data;
+using SubastaYa.Application.UseCases.Auth.Handlers; // <-- Acá encuentra a RegisterCommandHandler y LoginQueryHandler
+using SubastaYa.Application.UseCases.Auth.Commands; // <-- Acá encuentra a RegisterCommand (si lo pusiste en su propia carpeta)
+using SubastaYa.Application.UseCases.Auth.Queries;
 
 
 namespace SubastaYa.WebApi.Controllers
@@ -11,75 +11,27 @@ namespace SubastaYa.WebApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly SubastaYaDbContext _context;
+        private readonly RegisterCommandHandler _registerHandler;
+        private readonly LoginQueryHandler _loginHandler;
 
-        public AuthController(SubastaYaDbContext context)
+        public AuthController(RegisterCommandHandler registerHandler, LoginQueryHandler loginHandler)
         {
-            _context = context;
+            _registerHandler = registerHandler;
+            _loginHandler = loginHandler;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            // 1. Buscamos al usuario por su email
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
-
-            // 2. Verificamos que exista y que la contraseña coincida con el Hash (Usando BCrypt)
-            if (usuario == null || !BCrypt.Net.BCrypt.Verify(dto.Password, usuario.PasswordHash))
-            {
-                return Unauthorized(new { mensaje = "Email o contraseña incorrectos." });
-            }
-
-            // 3. Devolvemos los datos del usuario (sin la contraseña por seguridad)
-            return Ok(new
-            {
-                id = usuario.Id,
-                nombre = usuario.Nombre,
-                email = usuario.Email
-            });
+            var result = await _loginHandler.Handle(new LoginQuery(dto.Email, dto.Password));
+            return Ok(result);
         }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            // 1. Verificamos que el email no esté en uso
-            var emailExiste = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
-            if (emailExiste)
-            {
-                // Devolvemos 409 Conflict siguiendo las reglas RESTful de tu TP
-                return Conflict(new { mensaje = "Este correo electrónico ya está registrado." });
-            }
-
-            // 2. Creamos el usuario encriptando su clave
-            var nuevoUsuario = new Usuario
-            {
-                Nombre = dto.Nombre,
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                FechaRegistro = DateTime.UtcNow
-            };
-
-            _context.Usuarios.Add(nuevoUsuario);
-
-            // Guardamos para que MySQL/SQLite le asigne un ID (lo necesitamos para la billetera)
-            await _context.SaveChangesAsync();
-
-            // 3. REGLA DE NEGOCIO: Le creamos su billetera en cero
-            var nuevaBilletera = new Billetera
-            {
-                UsuarioId = nuevoUsuario.Id,
-                SaldoTotal = 0,
-                SaldoRetenido = 0
-            };
-
-            _context.Billeteras.Add(nuevaBilletera);
-            await _context.SaveChangesAsync();
-
+            await _registerHandler.Handle(new RegisterCommand(dto.Nombre, dto.Email, dto.Password));
             return Ok(new { mensaje = "Cuenta creada con éxito." });
         }
-
-
-
-
     }
 }

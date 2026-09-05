@@ -62,9 +62,9 @@ namespace SubastaYa.WebApi.Workers
 
                                 if (billeteraComprador != null && billeteraVendedor != null)
                                 {
-                                    billeteraComprador.SaldoRetenido -= pujaGanadora.Monto;
-                                    billeteraComprador.SaldoTotal -= pujaGanadora.Monto;
-                                    billeteraVendedor.SaldoTotal += pujaGanadora.Monto;
+                                    // El worker ya no hace cuentas, solo delega la responsabilidad a las entidades[cite: 1]
+                                    billeteraComprador.ProcesarPagoSubasta(pujaGanadora.Monto);
+                                    billeteraVendedor.Depositar(pujaGanadora.Monto);
                                 }
                                 _logger.LogInformation($"✅ Subasta {subasta.Id} FINALIZADA. Ganador: {pujaGanadora.CompradorId}");
                             }
