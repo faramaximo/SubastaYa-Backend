@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Elementos de la solución/">
+    <File Path="AGENTS.md" />
     <File Path="docker-compose.yml" />
   </Folder>
   <Project Path="SubastaYa.Application/SubastaYa.Application.csproj" />

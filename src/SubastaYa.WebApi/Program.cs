@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.Services;
 using SubastaYa.Infrastructure.Data;
+using SubastaYa.WebApi.Hubs;
+using SubastaYa.WebApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +20,11 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IBidService, BidService>();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionMiddleware>();
 
 // 4. Intentar aplicar migraciones y cargar datos semilla en la Base de Datos con reintentos
 using (var scope = app.Services.CreateScope())
@@ -69,5 +74,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auction");
 
 app.Run();
