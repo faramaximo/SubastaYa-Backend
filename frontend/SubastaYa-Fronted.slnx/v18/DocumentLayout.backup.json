@@ -1,0 +1,366 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\billetera.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\billetera.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\login.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\login.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\crear-subasta.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\crear-subasta.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\css\\catalogo.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\css\\catalogo.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\catalogo.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\catalogo.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\panel.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\panel.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\registro.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\registro.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\favicon.ico||{177559E0-D141-11D0-92DF-00A0C9138C45}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\favicon.ico||{177559E0-D141-11D0-92DF-00A0C9138C45}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\wallet.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\wallet.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\crear-subasta.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\crear-subasta.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\login.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\login.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\panel.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\panel.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\registro.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\registro.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\js\\auth.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\js\\auth.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|c:\\users\\eirk\\source\\repos\\subastaya-fronted\\subastaya-fronted\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{950AA259-C2B4-653E-D140-1F17BFA2BF86}|SubastaYa-Fronted\\SubastaYa-Fronted.csproj|solutionrelative:subastaya-fronted\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 295,
+          "SelectedChildIndex": 10,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "panel.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\panel.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\panel.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\panel.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\panel.js",
+              "ViewState": "AgIAADkAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:59:35.715Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "wallet.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\wallet.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\wallet.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\wallet.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\wallet.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T05:00:04.836Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "crear-subasta.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\crear-subasta.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\crear-subasta.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\crear-subasta.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\crear-subasta.html",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAAAF4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:24.806Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "login.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\login.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\login.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\login.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\login.html",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAADkAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:39.181Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "config.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\config.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\config.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\config.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\config.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:34:54.106Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "catalogo.css",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\css\\catalogo.css",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\css\\catalogo.css",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\css\\catalogo.css",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\css\\catalogo.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-09-05T17:21:36.356Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "billetera.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\billetera.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\billetera.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\billetera.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\billetera.html",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAB8AAABzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:18.283Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "index.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\index.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\index.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\index.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\index.html",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABoAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:31.446Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "registro.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\registro.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\registro.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\registro.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\registro.html",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAADEAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:46.042Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "favicon.ico - Icon [32x32, 32 bits, BMP]",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\favicon.ico",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\favicon.ico",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\favicon.ico - Icon [32x32, 32 bits, BMP]",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\favicon.ico - Icon [32x32, 32 bits, BMP]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001525|",
+              "WhenOpened": "2026-09-05T04:35:30.466Z",
+              "EditorCaption": " - Icon [32x32, 32 bits, BMP]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "catalogo.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\catalogo.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\catalogo.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\catalogo.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\catalogo.js",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAYwAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:28:43.014Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "crear-subasta.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\crear-subasta.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\crear-subasta.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\crear-subasta.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\crear-subasta.js",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAIwF8AAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:28:43.446Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "login.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\login.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\login.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\login.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\login.js",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAYwC4AAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:44:32.323Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "panel.html",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\panel.html",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\panel.html",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\panel.html",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\panel.html",
+              "ViewState": "AgIAAFUAAAAAAAAAAAAAAF4AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-09-05T04:35:46.563Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "registro.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\registro.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\registro.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\registro.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\registro.js",
+              "ViewState": "AgIAACMAAAAAAAAAAAAYwDAAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:47:17.724Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\Properties\\launchSettings.json",
+              "RelativeToolTip": "SubastaYa-Fronted\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-09-05T04:30:52.198Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "auth.js",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\auth.js",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\js\\auth.js",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\js\\auth.js",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\js\\auth.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-09-05T04:28:42.313Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "site.css",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\css\\site.css",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\wwwroot\\css\\site.css",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\wwwroot\\css\\site.css",
+              "RelativeToolTip": "SubastaYa-Fronted\\wwwroot\\css\\site.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-09-05T03:59:56.768Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\Program.cs",
+              "RelativeDocumentMoniker": "SubastaYa-Fronted\\Program.cs",
+              "ToolTip": "C:\\Users\\eirk\\source\\repos\\SubastaYa-Fronted\\SubastaYa-Fronted\\Program.cs",
+              "RelativeToolTip": "SubastaYa-Fronted\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-05T03:55:22.781Z"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 56,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
