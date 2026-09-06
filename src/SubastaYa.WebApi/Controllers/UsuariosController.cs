@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.Infrastructure.Data;
+using SubastaYa.Application.UseCases.Usuarios.Handlers;
+using SubastaYa.Application.UseCases.Usuarios.Queries;
 
 namespace SubastaYa.WebApi.Controllers
 {
@@ -8,58 +8,29 @@ namespace SubastaYa.WebApi.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly SubastaYaDbContext _context;
+        private readonly GetMisPublicacionesQueryHandler _publicacionesHandler;
+        private readonly GetMisPujasQueryHandler _pujasHandler;
 
-        public UsuariosController(SubastaYaDbContext context)
+        public UsuariosController(
+            GetMisPublicacionesQueryHandler publicacionesHandler,
+            GetMisPujasQueryHandler pujasHandler)
         {
-            _context = context;
+            _publicacionesHandler = publicacionesHandler;
+            _pujasHandler = pujasHandler;
         }
 
-        // GET: api/usuarios/5/publicaciones
         [HttpGet("{id}/publicaciones")]
         public async Task<IActionResult> GetMisPublicaciones(int id)
         {
-            var publicaciones = await _context.Subastas
-                .Where(s => s.VendedorId == id)
-                .Select(s => new {
-                    s.Id,
-                    s.Titulo,
-                    s.UrlImagen,
-                    s.Estado,
-                    s.FechaFin,
-                    PrecioBase = s.PrecioBase,
-                    // Calculamos la oferta más alta directamente en la base de datos
-                    OfertaMasAlta = _context.Pujas.Where(p => p.SubastaId == s.Id).Max(p => (decimal?)p.Monto) ?? 0,
-                    CantidadPujas = _context.Pujas.Count(p => p.SubastaId == s.Id)
-                })
-                .OrderByDescending(s => s.FechaFin)
-                .ToListAsync();
-
-            return Ok(publicaciones);
+            var result = await _publicacionesHandler.Handle(new GetMisPublicacionesQuery(id));
+            return Ok(result);
         }
 
-        // GET: api/usuarios/5/pujas
         [HttpGet("{id}/pujas")]
         public async Task<IActionResult> GetMisPujas(int id)
         {
-            // Buscamos subastas donde el usuario haya metido al menos una puja
-            var participaciones = await _context.Subastas
-                .Where(s => _context.Pujas.Any(p => p.SubastaId == s.Id && p.CompradorId == id))
-                .Select(s => new {
-                    s.Id,
-                    s.Titulo,
-                    s.UrlImagen,
-                    s.Estado,
-                    s.FechaFin,
-                    // Buscamos cuál fue mi oferta más alta
-                    MiMaximaPuja = _context.Pujas.Where(p => p.SubastaId == s.Id && p.CompradorId == id).Max(p => p.Monto),
-                    // Buscamos la oferta ganadora general
-                    OfertaGanadora = _context.Pujas.Where(p => p.SubastaId == s.Id).Max(p => (decimal?)p.Monto) ?? 0
-                })
-                .OrderByDescending(s => s.FechaFin)
-                .ToListAsync();
-
-            return Ok(participaciones);
+            var result = await _pujasHandler.Handle(new GetMisPujasQuery(id));
+            return Ok(result);
         }
     }
 }

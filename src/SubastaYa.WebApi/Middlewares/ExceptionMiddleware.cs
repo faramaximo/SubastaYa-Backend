@@ -1,4 +1,5 @@
 ﻿// SubastaYa.WebApi/Middlewares/ExceptionMiddleware.cs
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Domain.Exceptions;
 
 namespace SubastaYa.WebApi.Middlewares
@@ -31,6 +32,13 @@ namespace SubastaYa.WebApi.Middlewares
                 ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 await ctx.Response.WriteAsJsonAsync(new { error = "Error interno" });
             }
+
+            //catch (DbUpdateConcurrencyException ex) // Requiere usar Microsoft.EntityFrameworkCore
+            //{
+            //    _logger.LogWarning(ex, "Conflicto de concurrencia detectado.");
+            //    ctx.Response.StatusCode = StatusCodes.Status409Conflict;
+            //    await ctx.Response.WriteAsJsonAsync(new { error = "La información fue modificada por otro usuario. Por favor, actualice e intente de nuevo." });
+            //}
         }
     }
 }

@@ -6,8 +6,6 @@ namespace SubastaYa.WebApi.Workers
 {
     public class AuctionStatusWorker : BackgroundService
     {
-        // Usamos IServiceProvider porque el Worker vive para siempre (Singleton), 
-        // pero la base de datos (DbContext) nace y muere en cada petición (Scoped).
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<AuctionStatusWorker> _logger;
 
@@ -21,12 +19,10 @@ namespace SubastaYa.WebApi.Workers
         {
             _logger.LogInformation("🤖 Worker de Subastas iniciado.");
 
-            // El ciclo infinito que mantiene vivo al worker
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    // Creamos un alcance (scope) para poder usar la Base de Datos con seguridad
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
@@ -38,11 +34,11 @@ namespace SubastaYa.WebApi.Workers
 
                         foreach (var subasta in subastasParaActivar)
                         {
-                            subasta.Estado = EstadoSubasta.Activa;
+                            subasta.IniciarSubastaProgramada(); // Usamos el método de dominio
                             _logger.LogInformation($"🟢 Subasta {subasta.Id} ha comenzado. Estado cambiado a ACTIVA.");
                         }
 
-                        // 2. CERRAR SUBASTAS VENCIDAS (Fueran Activas o Programadas con error)
+                        // 2. CERRAR SUBASTAS VENCIDAS
                         var subastasVencidas = await context.Subastas
                             .Where(s => (s.Estado == EstadoSubasta.Activa || s.Estado == EstadoSubasta.Programada) && s.FechaFin <= DateTime.UtcNow)
                             .ToListAsync(stoppingToken);
@@ -56,13 +52,13 @@ namespace SubastaYa.WebApi.Workers
 
                             if (pujaGanadora != null)
                             {
-                                subasta.Estado = EstadoSubasta.Finalizada;
+                                subasta.FinalizarConGanador(); // Usamos el método de dominio
+
                                 var billeteraComprador = await context.Billeteras.FirstOrDefaultAsync(b => b.UsuarioId == pujaGanadora.CompradorId, stoppingToken);
                                 var billeteraVendedor = await context.Billeteras.FirstOrDefaultAsync(b => b.UsuarioId == subasta.VendedorId, stoppingToken);
 
                                 if (billeteraComprador != null && billeteraVendedor != null)
                                 {
-                                    // El worker ya no hace cuentas, solo delega la responsabilidad a las entidades[cite: 1]
                                     billeteraComprador.ProcesarPagoSubasta(pujaGanadora.Monto);
                                     billeteraVendedor.Depositar(pujaGanadora.Monto);
                                 }
@@ -70,12 +66,11 @@ namespace SubastaYa.WebApi.Workers
                             }
                             else
                             {
-                                subasta.Estado = EstadoSubasta.Desierta;
+                                subasta.DeclararDesierta(); // Usamos el método de dominio
                                 _logger.LogInformation($"👻 Subasta {subasta.Id} declarada DESIERTA.");
                             }
                         }
 
-                        // Guardamos todos los cambios juntos
                         if (subastasParaActivar.Any() || subastasVencidas.Any())
                         {
                             await context.SaveChangesAsync(stoppingToken);
@@ -87,7 +82,6 @@ namespace SubastaYa.WebApi.Workers
                     _logger.LogError(ex, "❌ Ocurrió un error en el worker de liquidación.");
                 }
 
-                // El worker se va a dormir 10 segundos antes de volver a revisar la base de datos
                 await Task.Delay(10000, stoppingToken);
             }
         }

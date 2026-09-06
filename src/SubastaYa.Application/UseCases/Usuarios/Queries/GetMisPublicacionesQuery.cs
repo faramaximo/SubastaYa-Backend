@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SubastaYa.Application.UseCases.Usuarios.Queries
 {
-    internal class GetMisPublicacionesQuery
-    {
-    }
+    public record GetMisPublicacionesQuery(int UsuarioId);
+
+    public record GetMisPujasQuery(int UsuarioId);
 }

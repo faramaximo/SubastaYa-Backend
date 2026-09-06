@@ -1,7 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.UseCases.Auctions.Handlers;
 using SubastaYa.Application.UseCases.Auth.Handlers;
+using SubastaYa.Application.UseCases.Usuarios.Handlers;
+using SubastaYa.Application.UseCases.Wallet.Handlers;
 using SubastaYa.Infrastructure.Data;
+using SubastaYa.Infrastructure.Persistence.Queries;
+using SubastaYa.Infrastructure.Persistence.Repositories;
 using SubastaYa.Infrastructure.Repositories;
 using SubastaYa.WebApi.Middlewares;
 
@@ -17,18 +22,43 @@ builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // 3. Registrar Inyección de Dependencias
-
 builder.Services.AddControllers();
 
-// INFRASTRUCTURE: UnitOfWork y Repositorios
+// ── INFRASTRUCTURE: UnitOfWork, Repositorios y Queries ──
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>(); // Se crea una instancia por request HTTP
-//builder.Services.AddScoped<IWalletRepository, WalletRepository>();
-//builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAuctionRepository, AuctionRepository>(); 
 
-// APPLICATION: Handlers de los Casos de Uso
-builder.Services.AddScoped<RegisterCommandHandler>(); 
-builder.Services.AddScoped<LoginQueryHandler>(); 
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); 
+builder.Services.AddScoped<IWalletQueries, WalletQueries>();       
+builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
+
+
+// ── APPLICATION: Handlers de los Casos de Uso ──
+
+// Auth
+builder.Services.AddScoped<RegisterCommandHandler>();
+builder.Services.AddScoped<LoginQueryHandler>();
+
+// Usuarios
+builder.Services.AddScoped<GetMisPublicacionesQueryHandler>();
+builder.Services.AddScoped<GetMisPujasQueryHandler>();
+
+// Subastas (Auctions)
+builder.Services.AddScoped<SearchAuctionsQueryHandler>();
+builder.Services.AddScoped<GetAuctionByIdQueryHandler>();
+builder.Services.AddScoped<CreateAuctionCommandHandler>();
+
+
+// ── WORKERS ──
+// Encendemos el proceso en segundo plano (Background Worker)
+builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();
+
+// Wallet
+builder.Services.AddScoped<DepositCommandHandler>();
+builder.Services.AddScoped<GetBalanceQueryHandler>();
+builder.Services.AddScoped<GetTransactionsQueryHandler>();
 
 // Encendemos el proceso en segundo plano (Background Worker)
 builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();

@@ -14,39 +14,42 @@ namespace SubastaYa.Infrastructure.Seed
             // ====================================================================
             // 💡 REINICIO DE RELOJES PARA LA DEFENSA DEL TP (Módulo 1)
             // ====================================================================
+            // ====================================================================
+            // 💡 REINICIO DE RELOJES PARA LA DEFENSA DEL TP (Módulo 1)
+            // ====================================================================
             if (await context.Usuarios.AnyAsync())
             {
-                // Traemos las subastas ordenadas por ID
                 var subastasExistentes = await context.Subastas.OrderBy(s => s.Id).ToListAsync();
 
                 if (subastasExistentes.Count >= 5)
                 {
+                    // Usamos context.Entry() para saltarnos el "private set" y modificar la base de datos directamente
+
                     // 1. Activa estándar: Cierra en 30 min
-                    subastasExistentes[0].FechaFin = DateTime.UtcNow.AddMinutes(30);
-                    subastasExistentes[0].Estado = EstadoSubasta.Activa;
+                    context.Entry(subastasExistentes[0]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddMinutes(30);
+                    context.Entry(subastasExistentes[0]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Activa;
 
                     // 2. Activa crítica: Cierra en menos de 2 min (1 min 50 seg)
-                    subastasExistentes[1].FechaFin = DateTime.UtcNow.AddSeconds(110);
-                    subastasExistentes[1].Estado = EstadoSubasta.Activa;
+                    context.Entry(subastasExistentes[1]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddSeconds(110);
+                    context.Entry(subastasExistentes[1]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Activa;
 
                     // 3. Próxima: Inicio programado a +24 hs
-                    subastasExistentes[2].FechaInicio = DateTime.UtcNow.AddHours(24);
-                    subastasExistentes[2].FechaFin = DateTime.UtcNow.AddHours(48);
-                    subastasExistentes[2].Estado = EstadoSubasta.Programada;
+                    context.Entry(subastasExistentes[2]).Property(s => s.FechaInicio).CurrentValue = DateTime.UtcNow.AddHours(24);
+                    context.Entry(subastasExistentes[2]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddHours(48);
+                    context.Entry(subastasExistentes[2]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Programada;
 
                     // 4. Vencida con ganador: Fecha fin en el pasado
-                    subastasExistentes[3].FechaFin = DateTime.UtcNow.AddMinutes(-10);
-                    subastasExistentes[3].Estado = EstadoSubasta.Activa;
+                    context.Entry(subastasExistentes[3]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddMinutes(-10);
+                    context.Entry(subastasExistentes[3]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Activa;
 
                     // 5. Vencida desierta: Fecha fin en el pasado lejano
-                    subastasExistentes[4].FechaFin = DateTime.UtcNow.AddHours(-2);
-                    subastasExistentes[4].Estado = EstadoSubasta.Activa;
+                    context.Entry(subastasExistentes[4]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddHours(-2);
+                    context.Entry(subastasExistentes[4]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Activa;
 
-                    // Guardamos los cambios forzadamente en la base de datos
                     await context.SaveChangesAsync();
                     Console.WriteLine("✅ TIEMPOS REINICIADOS A LOS CASOS DE PRUEBA DEL TP");
                 }
-                return; // Cortamos acá para no duplicar toda la base
+                return;
             }
 
             // ====================================================================
@@ -95,24 +98,39 @@ namespace SubastaYa.Infrastructure.Seed
             // ====================================================================
             // 3. LAS 5 SUBASTAS DEL TP
             // ====================================================================
+            // Creamos las 5 usando el constructor (nacerán como 'Activas')
+            // ====================================================================
+            // 3. LAS 5 SUBASTAS DEL TP
+            // ====================================================================
+            // Creamos las 5 usando el constructor (nacerán como 'Activas')
             var subastas = new List<Subasta>
             {
-                // Caso 1: Activa estándar (Cierra en 30 min)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[0].Id, Titulo = "Casco VR Edición Coleccionista", Descripcion = "Casco tope de gama.", UrlImagen = categorias[0].ImagenUrl, PrecioBase = 10000, IncrementoMinimo = 2000, FechaInicio = DateTime.UtcNow.AddMinutes(-30), FechaFin = DateTime.UtcNow.AddMinutes(30), Estado = EstadoSubasta.Activa },
+                // 0: Activa estándar (Vehículo)
+                new Subasta(usuarios[0].Id, categorias[3].Id, "Ford Fiesta", "Buen estado", "https://images.unsplash.com/photo-1552519507-da3b142c6e3d", 15000m, 500m, DateTime.UtcNow.AddMinutes(30)),
                 
-                // Caso 2: Activa crítica (Cierra en 1 min 50 seg - Anti-Sniping)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[1].Id, Titulo = "Consola Retro Edición Limitada", Descripcion = "Consola clásica.", UrlImagen = categorias[1].ImagenUrl, PrecioBase = 50000, IncrementoMinimo = 5000, FechaInicio = DateTime.UtcNow.AddMinutes(-58), FechaFin = DateTime.UtcNow.AddSeconds(110), Estado = EstadoSubasta.Activa },
+                // 1: Activa crítica (Tecnología)
+                new Subasta(usuarios[0].Id, categorias[0].Id, "Laptop Gamer", "Casi nueva", "https://images.unsplash.com/photo-1550745165-9bc0b252726f", 80000m, 1000m, DateTime.UtcNow.AddSeconds(110)),
                 
-                // Caso 3: Próxima (+24hs)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[3].Id, Titulo = "Llave NFT Prototipo Deportivo", Descripcion = "Acceso exclusivo.", UrlImagen = categorias[3].ImagenUrl, PrecioBase = 100000, IncrementoMinimo = 10000, FechaInicio = DateTime.UtcNow.AddHours(24), FechaFin = DateTime.UtcNow.AddHours(48), Estado = EstadoSubasta.Programada },
+                // 2: Próxima (Coleccionables)
+                new Subasta(usuarios[0].Id, categorias[1].Id, "Reloj Antiguo", "Siglo XIX", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f", 50000m, 2000m, DateTime.UtcNow.AddHours(48)),
                 
-                // Caso 4: Vencida con ganador
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[2].Id, Titulo = "Render Abstracto Ciberpunk #3", Descripcion = "Arte digital.", UrlImagen = categorias[2].ImagenUrl, PrecioBase = 15000, IncrementoMinimo = 1000, FechaInicio = DateTime.UtcNow.AddHours(-3), FechaFin = DateTime.UtcNow.AddMinutes(-10), Estado = EstadoSubasta.Activa },
+                // 3: Vencida con ganador (Arte)
+                new Subasta(usuarios[0].Id, categorias[2].Id, "Cuadro Original", "Pintura al óleo", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe", 30000m, 1500m, DateTime.UtcNow.AddDays(1)),
                 
-                // Caso 5: Vencida desierta (Sin pujas)
-                new Subasta { VendedorId = usuarios[0].Id, CategoriaId = categorias[0].Id, Titulo = "Cable HDMI Dañado", Descripcion = "Objeto sin uso.", UrlImagen = categorias[0].ImagenUrl, PrecioBase = 1000, IncrementoMinimo = 100, FechaInicio = DateTime.UtcNow.AddHours(-5), FechaFin = DateTime.UtcNow.AddHours(-2), Estado = EstadoSubasta.Activa }
+                // 4: Vencida desierta (Tecnología)
+                new Subasta(usuarios[0].Id, categorias[0].Id, "Auriculares", "In-ear", "https://images.unsplash.com/photo-1550745165-9bc0b252726f", 5000m, 100m, DateTime.UtcNow.AddDays(1))
             };
+
             context.Subastas.AddRange(subastas);
+            await context.SaveChangesAsync();
+
+            // Ajustamos los estados específicos saltándonos el "private set" para los casos 2, 3 y 4
+            context.Entry(subastas[2]).Property(s => s.FechaInicio).CurrentValue = DateTime.UtcNow.AddHours(24);
+            context.Entry(subastas[2]).Property(s => s.Estado).CurrentValue = EstadoSubasta.Programada;
+
+            context.Entry(subastas[3]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddMinutes(-10);
+            context.Entry(subastas[4]).Property(s => s.FechaFin).CurrentValue = DateTime.UtcNow.AddHours(-2);
+
             await context.SaveChangesAsync();
 
 

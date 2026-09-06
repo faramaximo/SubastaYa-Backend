@@ -12,9 +12,7 @@
 
   <ItemGroup>
     <Folder Include="Mappings\" />
-    <Folder Include="UseCases\Pedidos\Commands\" />
-    <Folder Include="UseCases\Pedidos\Handlers\" />
-    <Folder Include="UseCases\Pedidos\Queries\" />
+    <Folder Include="UseCases\Usuarios\Commands\" />
   </ItemGroup>
 
   <PropertyGroup>

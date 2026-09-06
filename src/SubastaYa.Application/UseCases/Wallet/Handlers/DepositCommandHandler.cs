@@ -1,6 +1,9 @@
 ﻿using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.UseCases.Wallet.Commands; // ← ¡Este using es el que te falta!
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
+using System;
+using System.Threading.Tasks;
 
 public class DepositCommandHandler
 {

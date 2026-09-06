@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.DTOs;
-using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.UseCases.Wallet.Commands;
+using SubastaYa.Application.UseCases.Wallet.Handlers;
+using SubastaYa.Application.UseCases.Wallet.Queries;
 
 namespace SubastaYa.WebApi.Controllers
 {
@@ -8,33 +10,39 @@ namespace SubastaYa.WebApi.Controllers
     [Route("api/v1/[controller]")]
     public class WalletController : ControllerBase
     {
-        private readonly IWalletService _walletService;
+        private readonly DepositCommandHandler _depositHandler;
+        private readonly GetBalanceQueryHandler _balanceHandler;
+        private readonly GetTransactionsQueryHandler _transactionsHandler;
 
-        public WalletController(IWalletService walletService)
+        public WalletController(
+            DepositCommandHandler depositHandler,
+            GetBalanceQueryHandler balanceHandler,
+            GetTransactionsQueryHandler transactionsHandler)
         {
-            _walletService = walletService;
+            _depositHandler = depositHandler;
+            _balanceHandler = balanceHandler;
+            _transactionsHandler = transactionsHandler;
         }
 
         [HttpGet("balance/{usuarioId}")]
         public async Task<IActionResult> GetBalance(int usuarioId)
         {
-            var balance = await _walletService.GetBalanceByUserIdAsync(usuarioId);
-            if (balance == null) return NotFound("Billetera no encontrada.");
+            var balance = await _balanceHandler.Handle(new GetBalanceQuery(usuarioId));
+            if (balance == null) return NotFound(new { error = "Billetera no encontrada." });
             return Ok(balance);
         }
 
         [HttpGet("transactions/{usuarioId}")]
         public async Task<IActionResult> GetTransactions(int usuarioId)
         {
-            var transactions = await _walletService.GetTransactionsByUserIdAsync(usuarioId);
+            var transactions = await _transactionsHandler.Handle(new GetTransactionsQuery(usuarioId));
             return Ok(transactions);
         }
 
         [HttpPost("deposit/{usuarioId}")]
         public async Task<IActionResult> Deposit(int usuarioId, [FromBody] DepositRequestDto dto)
         {
-            var success = await _walletService.DepositAsync(usuarioId, dto.Monto);
-            if (!success) return BadRequest("Monto inválido o usuario no encontrado.");
+            await _depositHandler.Handle(new DepositCommand(usuarioId, dto.Monto));
             return Ok(new { message = "Depósito realizado correctamente." });
         }
     }

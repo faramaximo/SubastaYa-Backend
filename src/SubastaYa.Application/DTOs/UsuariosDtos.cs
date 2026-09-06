@@ -1,10 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SubastaYa.Domain.Enums;
 
 namespace SubastaYa.Application.DTOs
 {
-    internal class UsuariosDtos
-    {
-    }
+    public record PublicacionResumenDto(
+        int Id,
+        string Titulo,
+        string UrlImagen,
+        EstadoSubasta Estado,
+        DateTime FechaFin,
+        decimal PrecioBase,
+        decimal OfertaMasAlta,
+        int CantidadPujas
+    );
+
+    public record ParticipacionResumenDto(
+        int Id,
+        string Titulo,
+        string UrlImagen,
+        EstadoSubasta Estado,
+        DateTime FechaFin,
+        decimal MiMaximaPuja,
+        decimal OfertaGanadora
+    );
 }

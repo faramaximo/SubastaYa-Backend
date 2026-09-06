@@ -50,17 +50,19 @@ namespace SubastaYa.Infrastructure.Persistence.Repositories
             if (!string.IsNullOrEmpty(busqueda))
                 query = query.Where(s => s.Titulo.Contains(busqueda));
 
+            // Reemplazar filtros de precio
             if (precioMin.HasValue)
-                query = query.Where(s => (s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase) >= precioMin.Value);
+                query = query.Where(s => (s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase) >= precioMin.Value);
 
             if (precioMax.HasValue)
-                query = query.Where(s => (s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase) <= precioMax.Value);
+                query = query.Where(s => (s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase) <= precioMax.Value);
 
+            // Reemplazar el switch de ordenamiento para evitar excepciones LINQ
             query = orderBy switch
             {
                 "mayor-tiempo" => query.OrderByDescending(s => s.FechaFin),
-                "menor-puja" => query.OrderBy(s => s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase),
-                "mayor-puja" => query.OrderByDescending(s => s.Pujas.Any() ? s.Pujas.Max(p => p.Monto) : s.PrecioBase),
+                "menor-puja" => query.OrderBy(s => s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase),
+                "mayor-puja" => query.OrderByDescending(s => s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase),
                 _ => query.OrderBy(s => s.FechaFin)
             };
 

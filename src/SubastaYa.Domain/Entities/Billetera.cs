@@ -49,4 +49,17 @@ public class Billetera
         SaldoTotal -= monto;
         Version = Guid.NewGuid();
     }
+    public void RetenerFondos(decimal monto)
+    {
+        if (monto > SaldoDisponible)
+            throw new DomainException("Fondos insuficientes para esta puja.");
+        SaldoRetenido += monto;
+        Version = Guid.NewGuid();
+    }
+
+    public void LiberarFondos(decimal monto)
+    {
+        SaldoRetenido -= monto;
+        Version = Guid.NewGuid();
+    }
 }

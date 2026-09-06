@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SubastaYa.Application.DTOs;
-using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.UseCases.Auctions.Commands;
+using SubastaYa.Application.UseCases.Auctions.Queries;
+using SubastaYa.Application.UseCases.Auctions.Handlers;
 using System.Threading.Tasks;
 
 //su unica responsabilidad es recibir la petición HTTP, delegar el trabajo a _auctionService y retornar un HTTP 200 ( ok).
@@ -12,14 +13,24 @@ namespace SubastaYa.WebApi.Controllers
     [ApiController]
     public class AuctionsController : ControllerBase
     {
-        private readonly IAuctionService _auctionService;
 
-        public AuctionsController(IAuctionService auctionService)
+        private readonly SearchAuctionsQueryHandler _searchHandler;
+        private readonly GetAuctionByIdQueryHandler _getByIdHandler;
+
+        private readonly CreateAuctionCommandHandler _createHandler;
+       
+
+        public AuctionsController(
+            SearchAuctionsQueryHandler searchHandler,
+            GetAuctionByIdQueryHandler getByIdHandler,
+            CreateAuctionCommandHandler createHandler)
         {
-            _auctionService = auctionService;
+            _searchHandler = searchHandler;
+            _getByIdHandler = getByIdHandler;
+            _createHandler = createHandler;
         }
 
-        // 🔴 ESTE DEBE SER EL ÚNICO [HttpGet] SIN RUTA (Para la lista y filtros)
+      
         [HttpGet]
         public async Task<IActionResult> GetAuctions(
             [FromQuery] int? estado,
@@ -30,7 +41,8 @@ namespace SubastaYa.WebApi.Controllers
             [FromQuery] string orderBy = "menor-tiempo")
         {
             //El controlador llama al servicio
-            var subastas = await _auctionService.ObtenerSubastasAsync(estado, categoriaId, precioMin, precioMax, busqueda, orderBy);
+            var query = new SearchAuctionsQuery(estado, categoriaId, precioMin, precioMax, busqueda, orderBy);
+            var subastas = await _searchHandler.Handle(query);
             return Ok(subastas);
         }
 
@@ -38,17 +50,22 @@ namespace SubastaYa.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAuctionById(int id)
         {
-            var subasta = await _auctionService.GetAuctionByIdAsync(id);
+            var query = new GetAuctionByIdQuery(id);
+            var subasta = await _getByIdHandler.Handle(query);
             if (subasta == null) return NotFound();
             return Ok(subasta);
         }
 
+        
+
         // [HttpPost] para crear subastas (Módulo 2)
         [HttpPost]
-        public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionDto dto)
+        public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionCommand command)
         {
-            var subasta = await _auctionService.CreateAuctionAsync(dto);
-            return CreatedAtAction(nameof(GetAuctionById), new { id = subasta.Id }, subasta);
+            var subastaId = await _createHandler.Handle(command);
+
+            // Retorna 201 Created y te dice en qué URL quedó guardada
+            return CreatedAtAction(nameof(GetAuctionById), new { id = subastaId }, new { id = subastaId });
         }
     }
 }
