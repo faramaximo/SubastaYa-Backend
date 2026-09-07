@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="billetera.css" />
+    <Content Include="billetera.html" />
+    <Content Include="crear-subasta.html" />
+    <Content Include="css\catalogo.css" />
+    <Content Include="index.html" />
+    <Content Include="js\auth.js" />
+    <Content Include="js\catalogo.js" />
+    <Content Include="js\crear-subasta.js" />
+    <Content Include="js\login.js" />
+    <Content Include="js\panel.js" />
+    <Content Include="js\registro.js" />
+    <Content Include="js\wallet.js" />
+    <Content Include="login.html" />
+    <Content Include="panel.html" />
+    <Content Include="registro.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+  </ItemGroup>
+</Project>
