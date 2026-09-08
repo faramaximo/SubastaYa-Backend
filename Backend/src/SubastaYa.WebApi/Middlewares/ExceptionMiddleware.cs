@@ -21,6 +21,15 @@ namespace SubastaYa.WebApi.Middlewares
             {
                 await _next(context);
             }
+            catch (SubastaYa.Domain.Exceptions.UnauthorizedException ex)
+            {
+                // Errores de autenticación deben mapear a 401 Unauthorized
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                context.Response.ContentType = "application/json";
+
+                var response = new { error = ex.Message };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            }
             catch (DomainException ex)
             {
                 // Atrapa la regla de negocio y devuelve HTTP 400 Bad Request prolijo

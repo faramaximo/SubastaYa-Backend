@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auctions.Handlers;
+using SubastaYa.Application.UseCases.Bids.Commands;
 using SubastaYa.Application.UseCases.Auth.Handlers;
 using SubastaYa.Application.UseCases.Usuarios.Handlers;
 using SubastaYa.Application.UseCases.Wallet.Handlers;
@@ -8,87 +10,66 @@ using SubastaYa.Infrastructure.Data;
 using SubastaYa.Infrastructure.Persistence.Queries;
 using SubastaYa.Infrastructure.Persistence.Repositories;
 using SubastaYa.Infrastructure.Repositories;
+using SubastaYa.WebApi.Hubs;
 using SubastaYa.WebApi.Middlewares;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Obtener cadena de conexión desde appsettings.json
+// 1. Cadena de conexión e Infraestructura
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 2. Registrar DbContext con MySQL
 builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// 3. Registrar Inyección de Dependencias
 builder.Services.AddControllers();
 
-// ── INFRASTRUCTURE: UnitOfWork, Repositorios y Queries ──
+// 2. Registros de Infraestructura
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IAuctionRepository, AuctionRepository>(); 
-
+builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
-builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); 
-builder.Services.AddScoped<IWalletQueries, WalletQueries>();       
+builder.Services.AddScoped<ILedgerRepository, LedgerRepository>();
+builder.Services.AddScoped<IWalletQueries, WalletQueries>();
 builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
 
-
-// ── APPLICATION: Handlers de los Casos de Uso ──
-
-// Auth
+// 3. Registros de Aplicación (Auth, Subastas, Billetera y Pujas)
 builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginQueryHandler>();
-
-// Usuarios
 builder.Services.AddScoped<GetMisPublicacionesQueryHandler>();
 builder.Services.AddScoped<GetMisPujasQueryHandler>();
-
-// Subastas (Auctions)
 builder.Services.AddScoped<SearchAuctionsQueryHandler>();
 builder.Services.AddScoped<GetAuctionByIdQueryHandler>();
 builder.Services.AddScoped<CreateAuctionCommandHandler>();
+builder.Services.AddScoped<RegisterBidCommandHandler>();
 
-
-// ── WORKERS ──
-// Encendemos el proceso en segundo plano (Background Worker)
-builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();
-
-// Wallet
 builder.Services.AddScoped<DepositCommandHandler>();
 builder.Services.AddScoped<GetBalanceQueryHandler>();
 builder.Services.AddScoped<GetTransactionsQueryHandler>();
 
-// Encendemos el proceso en segundo plano (Background Worker)
+// 4. Worker en Segundo Plano y SignalR
 builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>();
+builder.Services.AddSignalR();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+// Configuración de CORS incluyendo los puertos de desarrollo local
 builder.Services.AddCors(options => {
     options.AddPolicy("PermitirFrontend", policy => {
-        policy.WithOrigins("http://localhost:5191", "https://localhost:5191") // ¡Aquí estaba el detalle!
+        policy.WithOrigins(
+                    "http://localhost:5216", "https://localhost:5216",
+                    "http://localhost:5191", "https://localhost:5191",
+                    "http://localhost:5173", "https://localhost:5173"
+              )
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
-
-//Middlewares
-
-
-
-
 var app = builder.Build();
 
-
-
-
 app.UseMiddleware<ExceptionMiddleware>();
-
-
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -98,24 +79,52 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// ── INTERFAZ WEB ──
+// La API hospeda la interfaz real del proyecto. No se usa el template Vite/Aspire
+// que quedó en Fronted/frontend luego de separar el monorepo.
+var interfazPath = Path.GetFullPath(Path.Combine(
+    builder.Environment.ContentRootPath,
+    "..", "..", "..", "Fronted", "SubastaYa-Fronted", "wwwroot"));
+
+PhysicalFileProvider? interfazFileProvider = null;
+
+if (Directory.Exists(interfazPath))
+{
+    interfazFileProvider = new PhysicalFileProvider(interfazPath);
+    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = interfazFileProvider });
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = interfazFileProvider });
+}
+else
+{
+    app.Logger.LogWarning("No se encontró la interfaz web en {RutaInterfaz}", interfazPath);
+}
+
+// IMPORTANT: ordenar middlewares de routing y seguridad correctamente
+app.UseRouting();
+
 app.UseCors("PermitirFrontend");
-
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auction");
 
+// Permite recargar o navegar a rutas de la interfaz sin interceptar API ni SignalR.
+if (interfazFileProvider is not null)
+{
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        FileProvider = interfazFileProvider
+    });
+}
 
-
-// ============================================================
-// DISPARADOR DEL SEEDER AL ARRANCAR LA API
-// Esto ejecuta DbInitializer cada vez que apretás F5
-// ============================================================
+// Inicialización de la base de datos (Seeder)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<SubastaYaDbContext>();
-        // Llama a nuestro seeder (Asegurate de tener el using de tu clase DbInitializer arriba si hace falta)
         await SubastaYa.Infrastructure.Seed.DbInitializer.SeedAsync(context);
     }
     catch (Exception ex)

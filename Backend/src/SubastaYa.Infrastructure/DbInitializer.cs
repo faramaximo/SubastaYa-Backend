@@ -11,6 +11,25 @@ namespace SubastaYa.Infrastructure.Seed
         {
             await context.Database.MigrateAsync();
 
+            // Corrige instalaciones antiguas que guardaron contraseñas en texto plano
+            // o con formatos distintos a BCrypt. Re-hasheamos todos los usuarios que
+            // no tengan un hash BCrypt válido (no comienzan con "$2").
+            const string defaultSeedPassword = "123456"; // contraseña de prueba
+
+            var usuariosSinHashBCrypt = await context.Usuarios
+                .Where(u => string.IsNullOrEmpty(u.PasswordHash) || !u.PasswordHash.StartsWith("$2"))
+                .ToListAsync();
+
+            if (usuariosSinHashBCrypt.Count > 0)
+            {
+                foreach (var usuario in usuariosSinHashBCrypt)
+                {
+                    usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultSeedPassword);
+                }
+
+                await context.SaveChangesAsync();
+            }
+
             // ====================================================================
             // 💡 REINICIO DE RELOJES PARA LA DEFENSA DEL TP (Módulo 1)
             // ====================================================================
@@ -71,7 +90,8 @@ namespace SubastaYa.Infrastructure.Seed
             // ====================================================================
 
             // Encriptamos una contraseña genérica ("123456") para todos
-            string passwordHasheada = BCrypt.Net.BCrypt.HashPassword("123456");
+            // Usamos la misma librería BCrypt que el resto del proyecto
+            string passwordHasheada = BCrypt.Net.BCrypt.HashPassword(defaultSeedPassword);
 
             var usuarios = new List<Usuario>
             {
