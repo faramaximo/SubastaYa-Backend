@@ -18,5 +18,10 @@ namespace SubastaYa.Infrastructure.Persistence.Repositories
         {
             await _context.TransaccionesLedger.AddAsync(transaccion);
         }
+
+        public async Task AddAsync(TransaccionLedger transaccion)
+        {
+            await _context.TransaccionesLedger.AddAsync(transaccion);
+        }
     }
 }

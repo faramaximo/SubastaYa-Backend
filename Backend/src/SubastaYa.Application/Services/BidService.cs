@@ -1,30 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SubastaYa.Application.DTOs;
+﻿using SubastaYa.Application.DTOs;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
-using SubastaYa.Infrastructure.Data;
+using SubastaYa.Application.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SubastaYa.Application.Services
 {
     public class BidService : IBidService
     {
-        private readonly SubastaYaDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IAuctionRepository _auctionRepository;
+        private readonly IWalletRepository _walletRepository;
+        private readonly ILedgerRepository _ledgerRepository;
 
-        public BidService(SubastaYaDbContext context)
+        public BidService(
+            IUnitOfWork unitOfWork,
+            IAuctionRepository auctionRepository,
+            IWalletRepository walletRepository,
+            ILedgerRepository ledgerRepository)
         {
-            _context = context;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _auctionRepository = auctionRepository ?? throw new ArgumentNullException(nameof(auctionRepository));
+            _walletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
+            _ledgerRepository = ledgerRepository ?? throw new ArgumentNullException(nameof(ledgerRepository));
         }
 
         public async Task<PujaResponseDto> RegistrarPujaAsync(RegistrarPujaDto dto)
         {
-            // 1. Obtener Subasta
-            var subasta = await _context.Subastas
-                .Include(s => s.Pujas)
-                .FirstOrDefaultAsync(s => s.Id == dto.SubastaId)
+            // 1. Obtener Subasta (con pujas)
+            var subasta = await _auctionRepository.GetByIdWithBidsAsync(dto.SubastaId)
                 ?? throw new DomainException("La subasta especificada no existe.");
 
             if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
@@ -38,7 +45,7 @@ namespace SubastaYa.Application.Services
             }
 
             // 2. Determinar Puja Líder y Precio
-            var pujaLiderAnterior = subasta.Pujas
+            var pujaLiderAnterior = subasta.Pujas?
                 .OrderByDescending(p => p.Monto)
                 .FirstOrDefault();
 
@@ -52,9 +59,8 @@ namespace SubastaYa.Application.Services
                 throw new DomainException($"El monto ofertado (${dto.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
             }
 
-            // 3. Obtener Billetera
-            var billeteraNuevoOfertante = await _context.Billeteras
-                .FirstOrDefaultAsync(b => b.UsuarioId == dto.UsuarioId)
+            // 3. Obtener Billetera del nuevo ofertante
+            var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(dto.UsuarioId)
                 ?? throw new DomainException("El usuario no posee una billetera virtual activa.");
 
             decimal saldoDisponible = billeteraNuevoOfertante.SaldoTotal - billeteraNuevoOfertante.SaldoRetenido;
@@ -63,17 +69,17 @@ namespace SubastaYa.Application.Services
                 throw new DomainException($"Saldo insuficiente en la billetera. Disponible: ${saldoDisponible}, Requerido: ${dto.Monto}.");
             }
 
-            // 4. Liberar Saldo al Líder Anterior
+            // 4. Liberar Saldo al Líder Anterior (si existe)
             if (pujaLiderAnterior != null)
             {
-                var billeteraLiderAnterior = await _context.Billeteras
-                    .FirstOrDefaultAsync(b => b.UsuarioId == pujaLiderAnterior.Id);
+                // BUG FIX: usar CompradorId para buscar la billetera del líder anterior
+                var billeteraLiderAnterior = await _walletRepository.GetByUserIdAsync(pujaLiderAnterior.CompradorId);
 
                 if (billeteraLiderAnterior != null)
                 {
-                    billeteraLiderAnterior.SaldoRetenido -= pujaLiderAnterior.Monto;
+                    billeteraLiderAnterior.LiberarFondos(pujaLiderAnterior.Monto);
 
-                    _context.TransaccionesLedger.Add(new TransaccionLedger
+                    await _ledgerRepository.AddAsync(new TransaccionLedger
                     {
                         BilleteraId = billeteraLiderAnterior.Id,
                         Tipo = TipoTransaccion.Liberacion,
@@ -85,9 +91,9 @@ namespace SubastaYa.Application.Services
             }
 
             // 5. Retener Saldo al Nuevo Ofertante
-            billeteraNuevoOfertante.SaldoRetenido += dto.Monto;
+            billeteraNuevoOfertante.RetenerFondos(dto.Monto);
 
-            _context.TransaccionesLedger.Add(new TransaccionLedger
+            await _ledgerRepository.AddAsync(new TransaccionLedger
             {
                 BilleteraId = billeteraNuevoOfertante.Id,
                 Tipo = TipoTransaccion.Retencion,
@@ -96,28 +102,16 @@ namespace SubastaYa.Application.Services
                 SubastaId = subasta.Id
             });
 
-            // 6. Regla Anti-Sniping
-            bool tiempoExtendido = false;
-            var tiempoRestante = subasta.FechaFin - DateTime.UtcNow;
-            if (tiempoRestante <= TimeSpan.FromMinutes(2))
-            {
-                subasta.FechaFin = subasta.FechaFin.AddMinutes(2);
-                tiempoExtendido = true;
-            }
+            // 6. Registrar la puja dentro de la entidad Subasta (encapsula validaciones y anti-sniping)
+            var fechaFinAntes = subasta.FechaFin;
+            subasta.RegistrarPuja(dto.UsuarioId, dto.Monto);
+            bool tiempoExtendido = subasta.FechaFin > fechaFinAntes;
 
-            // 7. Crear la Puja
-            var nuevaPuja = new Puja
-            {
-                SubastaId = dto.SubastaId,
-                CompradorId = dto.UsuarioId,
-                Monto = dto.Monto,
-                FechaPuja = DateTime.UtcNow
-            };
+            // 7. Persistir cambios a través de UnitOfWork
+            await _unitOfWork.SaveChangesAsync();
 
-            _context.Pujas.Add(nuevaPuja);
-
-            // 8. Guardar en Base de Datos
-            await _context.SaveChangesAsync();
+            // Obtener la puja recién agregada (la entidad Subasta la creó)
+            var nuevaPuja = subasta.Pujas.OrderByDescending(p => p.FechaPuja).FirstOrDefault()!;
 
             return new PujaResponseDto(
                 nuevaPuja.Id,

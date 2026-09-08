@@ -20,6 +20,12 @@ namespace SubastaYa.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(b => b.UsuarioId == usuarioId);
         }
 
+        public async Task<Billetera?> GetByUserIdAsync(int usuarioId)
+        {
+            return await _context.Billeteras
+                .FirstOrDefaultAsync(b => b.UsuarioId == usuarioId);
+        }
+
         public async Task AgregarAsync(Billetera billetera)
         {
             await _context.Billeteras.AddAsync(billetera);

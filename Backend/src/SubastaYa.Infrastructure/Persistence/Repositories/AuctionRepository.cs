@@ -23,6 +23,14 @@ namespace SubastaYa.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(s => s.Id == id);
         }
 
+        public async Task<Subasta?> GetByIdWithBidsAsync(int id)
+        {
+            return await _context.Subastas
+                .Include(s => s.Categoria)
+                .Include(s => s.Pujas)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
         public async Task AgregarAsync(Subasta subasta)
         {
             await _context.Subastas.AddAsync(subasta);
