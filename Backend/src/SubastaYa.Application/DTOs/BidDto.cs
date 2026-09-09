@@ -6,7 +6,7 @@ namespace SubastaYa.Application.DTOs
 {
     public record RegistrarPujaDto(
     int SubastaId,
-    int UsuarioId,
+    int? UsuarioId,
     decimal Monto
     );
 

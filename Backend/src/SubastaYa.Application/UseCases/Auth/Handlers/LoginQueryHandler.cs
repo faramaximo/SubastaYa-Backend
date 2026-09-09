@@ -3,6 +3,7 @@ using SubastaYa.Application.UseCases.Auth.Queries;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Domain.Exceptions;
 using SubastaYa.Application.Interfaces;
+// Usings mínimos
 
 public class LoginQueryHandler
 {
@@ -13,7 +14,7 @@ public class LoginQueryHandler
         _usuarios = usuarios;
     }
 
-    public async Task<object> Handle(LoginQuery query)
+    public async Task<AuthUserDto> Handle(LoginQuery query)
     {
         var usuario = await _usuarios.ObtenerPorEmailAsync(query.Email);
 
@@ -36,11 +37,6 @@ public class LoginQueryHandler
         if (!passwordValida)
             throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Email o contraseña incorrectos.");
 
-        return new
-        {
-            id = usuario.Id,
-            nombre = usuario.Nombre,
-            email = usuario.Email
-        };
+        return new AuthUserDto(usuario.Id, usuario.Nombre, usuario.Email);
     }
 }
