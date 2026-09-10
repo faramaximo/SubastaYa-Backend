@@ -12,54 +12,56 @@
                               paginaActual.includes("billetera") || 
                               paginaActual.includes("panel");
 
-    const sidebarBottom = document.querySelector(".sidebar-bottom");
+    // Render function para poder invocarla desde otras partes
+    const sidebarBottomEl = document.querySelector(".sidebar-bottom-placeholder");
 
-    if (userId && userName) {
-        // ==========================================
-        // ESTADO: USUARIO LOGUEADO
-        // ==========================================
-        if (sidebarBottom) {
-            // Inyectamos la estructura completa con clases de contraste y configuración
-            sidebarBottom.innerHTML = `
-                <div class="pt-3 border-top border-secondary border-opacity-25">
-                    <div class="text-white-50 mb-1" style="font-size: 0.85rem;">Conectado como:</div>
-                    <div class="text-white fw-bold mb-3">${userName}</div>
+    function decodeNameFromToken(token) {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return payload.unique_name || payload.name || payload.email || null;
+        } catch (e) { return null; }
+    }
 
-                    <a href="#" class="text-white-50 text-decoration-none d-block mb-2">
-                        ⚙️ Configuración
-                    </a>
-                    
-                    <a href="#" id="btnCerrarSesion" class="text-danger fw-bold text-decoration-none d-block">
-                        Cerrar sesión
-                    </a>
-                </div>
-            `;
+    window.updateAuthSidebar = function() {
+        const userId = sessionStorage.getItem("subastaya_user_id");
+        let userName = sessionStorage.getItem("subastaya_user_name");
+        const token = localStorage.getItem('token');
 
-            // Le damos vida al botón de Cerrar Sesión
-            document.getElementById("btnCerrarSesion").addEventListener("click", (e) => {
-                e.preventDefault();
-                sessionStorage.clear(); // Borramos solo la sesión de esta pestaña
-                window.location.href = "/login.html"; // Lo mandamos al login
-            });
+        if (!userName && token) {
+            // Intentamos obtener el nombre desde el JWT si no está en sessionStorage
+            userName = decodeNameFromToken(token) || 'Usuario';
         }
-    } else {
-        // ==========================================
-        // ESTADO: USUARIO NO LOGUEADO (Invitado)
-        // ==========================================
-        
-        // Si intenta entrar a una sección protegida sin loguearse, lo echamos
-        if (esPaginaProtegida) {
-            window.location.href = "/login.html";
+
+        if (userId || token) {
+            if (sidebarBottomEl) {
+                sidebarBottomEl.innerHTML = `
+                    <div class="pt-3 border-top border-secondary border-opacity-25 px-3 py-2">
+                        <div class="text-white-50 mb-1" style="font-size: 0.85rem;">Conectado como:</div>
+                        <div class="text-white fw-bold mb-2">${userName || 'Usuario'}</div>
+                        <a href="#" class="text-white-50 text-decoration-none d-block mb-2">⚙️ Configuración</a>
+                        <a href="#" id="btnCerrarSesion" class="text-danger fw-bold text-decoration-none d-block">Cerrar sesión</a>
+                    </div>
+                `;
+                const btn = document.getElementById("btnCerrarSesion");
+                if (btn) btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    sessionStorage.clear();
+                    localStorage.removeItem('token');
+                    window.location.href = "/login.html";
+                });
+            }
             return;
         }
 
-        // Si está en el catálogo público, le mostramos el botón de Iniciar Sesión
-        if (sidebarBottom) {
-            sidebarBottom.innerHTML = `
-                <a href="/login.html" class="text-success text-decoration-none d-flex align-items-center gap-2 px-3 py-2 fw-bold">
-                    🔑 Iniciar Sesión
-                </a>
-            `;
+        // Estado invitado
+        if (esPaginaProtegida) { window.location.href = "/login.html"; return; }
+        if (sidebarBottomEl) {
+            sidebarBottomEl.innerHTML = `<a href="/login.html" class="text-success text-decoration-none d-flex align-items-center gap-2 px-3 py-2 fw-bold">🔑 Iniciar Sesión</a>`;
         }
-    }
+    };
+
+    // Ejecutamos al cargar
+    window.updateAuthSidebar();
 });

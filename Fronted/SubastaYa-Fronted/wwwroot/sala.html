@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sala de Subasta - SubastaYa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/catalogo.css" />
+  </head>
+  <body>
+    <div class="container py-5">
+      <a href="/index.html" class="btn btn-link mb-3">← Volver al catálogo</a>
+      <h1 class="mb-3">Sala de Subasta</h1>
+      <div id="salaInfo" class="mb-4">Cargando información de la sala...</div>
+
+      <!-- Contenedor básico donde la lógica de sala puede inicializarse -->
+      <div id="salaContainer">
+        <!-- Aquí se conectará SignalR y se mostrará el tablero de la subasta -->
+      </div>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+      // Extraer id de la querystring y mostrarla
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const salaInfo = document.getElementById('salaInfo');
+      if (!id) {
+        salaInfo.innerText = 'No se especificó el id de la subasta.';
+      } else {
+        salaInfo.innerText = `Subasta id: ${id}`;
+        // Aquí se podría inicializar la conexión SignalR con /hubs/auction y unirse a la sala
+        // Ejemplo (si se añade sala.js posteriormente):
+        // import('/js/sala.js').then(m => m.initSala(id));
+      }
+    </script>
+  </body>
+</html>

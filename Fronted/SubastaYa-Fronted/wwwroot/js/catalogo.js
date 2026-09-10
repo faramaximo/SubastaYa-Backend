@@ -1,10 +1,20 @@
 ﻿// Reemplaza los '0000' por el puerto HTTPS real de tu BACKEND
 
 
+let hubConnection = null;
+let currentSalaId = null;
+
 document.addEventListener("DOMContentLoaded", () => {
     configurarEventosFiltros();
     obtenerCatalogo();
     iniciarTemporizadorGlobal();
+    // Asegurar vista por defecto: catálogo visible, sala oculta
+    const salaEl = document.getElementById('sala-view');
+    const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
+    if (salaEl) salaEl.classList.add('d-none');
+    if (catalogEl) catalogEl.classList.remove('d-none');
+    // Actualizar sidebar auth area según token / session
+    if (window.updateAuthSidebar) window.updateAuthSidebar();
 });
 
 // ==========================================
@@ -149,11 +159,155 @@ function renderizarTarjeta(subasta, contenedor) {
                             <div class="duracion-subasta mt-1" style="font-size: 0.75rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                         </div>
                     </div>
-                    <a href="/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
+                    <a href="#" data-id="${subasta.id}" class="btn btn-primary w-100 mt-3 ver-sala">Ver Sala</a>
                 </div>
             </div>
         </div>
     `;
+}
+
+// Delegación de eventos: abrir sala al hacer click en cualquier botón .ver-sala
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.ver-sala');
+    if (!btn) return;
+    e.preventDefault();
+    const id = btn.getAttribute('data-id');
+    if (id) mostrarSala(id);
+});
+
+// Botón volver al catálogo
+// Botón volver al catálogo (simple)
+document.addEventListener('click', function (e) {
+    const volver = e.target.closest('#btnVolverCatalogo');
+    if (!volver) return;
+    e.preventDefault();
+    const salaEl = document.getElementById('sala-view');
+    const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
+    if (salaEl) {
+        // limpiar contenedores de sala básicos
+        const img = salaEl.querySelector('#salaImagen'); if (img) img.src = '';
+        const titulo = salaEl.querySelector('#salaTitulo'); if (titulo) titulo.innerText = '';
+        const desc = salaEl.querySelector('#salaDescripcion'); if (desc) desc.innerText = '';
+        const oferta = salaEl.querySelector('#salaOferta'); if (oferta) oferta.innerText = '$0';
+        const historial = salaEl.querySelector('#historialPujas'); if (historial) historial.innerHTML = '';
+        const monto = salaEl.querySelector('#montoPuja'); if (monto) monto.value = '';
+        salaEl.classList.add('d-none');
+    }
+    if (catalogEl) catalogEl.classList.remove('d-none');
+});
+
+async function mostrarSala(id) {
+    try {
+        const resp = await fetch(`${API_BASE_URL}/api/auctions/${id}`);
+        if (!resp.ok) throw new Error('No se pudo cargar la subasta');
+        const subasta = await resp.json();
+
+        // Rellenar datos en la vista de sala
+        const salaView = document.getElementById('sala-view');
+        const catalogView = document.getElementById('catalog-view');
+
+        document.getElementById('salaTitulo').innerText = subasta.titulo || '';
+        document.getElementById('salaDescripcion').innerText = subasta.descripcion || '';
+        document.getElementById('salaImagen').src = subasta.urlImagen || '';
+        const oferta = subasta.ofertaMasAlta && subasta.ofertaMasAlta > 0 ? subasta.ofertaMasAlta : subasta.precioBase;
+        document.getElementById('salaOferta').innerText = `$${oferta}`;
+
+        // Historial de pujas
+        const historial = document.getElementById('historialPujas');
+        historial.innerHTML = '';
+        const pujas = subasta.pujas || subasta.Pujas || [];
+        if (Array.isArray(pujas) && pujas.length > 0) {
+            // Orden descendente por fecha
+            pujas.sort((a,b) => new Date(b.fechaPuja || b.FechaPuja) - new Date(a.fechaPuja || a.FechaPuja));
+            pujas.forEach((p, idx) => {
+                const comprador = p.compradorId || p.compradorID || p.comprador || p.usuarioId || p.usuario || 'Anónimo';
+                const montoVal = p.monto ?? p.Monto ?? p.MontoOferta ?? 0;
+                const fecha = new Date(p.fechaPuja || p.FechaPuja || p.fecha || Date.now()).toLocaleString();
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `<div><div class="fw-semibold">${comprador}</div><div class="sala-meta">${fecha}</div></div><span class=\"badge rounded-pill\">$${montoVal}</span>`;
+                historial.appendChild(li);
+            });
+        } else {
+            historial.innerHTML = '<li class="list-group-item text-muted">Aún no hay pujas</li>';
+        }
+
+        // Mostrar sala y ocultar catálogo
+        const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
+        if (catalogEl) catalogEl.classList.add('d-none');
+        if (salaView) salaView.classList.remove('d-none');
+
+        // Preparar evento ofertar (simple, depende de autenticación)
+        const btnOfertar = document.getElementById('btnOfertar');
+        const inputMonto = document.getElementById('montoPuja');
+        btnOfertar.onclick = async () => {
+            const monto = parseFloat(inputMonto.value);
+            if (!monto || monto <= 0) return showToast('danger', 'Ingresá un monto válido');
+
+            // Requerimos token JWT en localStorage
+            const token = localStorage.getItem('token');
+            console.log('Token a enviar:', token);
+            if (!token) {
+                showToast('warning', 'Debés iniciar sesión para poder pujar.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+                const body = { subastaId: parseInt(id), monto };
+
+                const r = await fetch(`${API_BASE_URL}/api/bids`, { method: 'POST', headers, body: JSON.stringify(body) });
+                if (!r.ok) {
+                    const json = await r.json().catch(() => null);
+                    const text = json?.error || json?.message || await r.text();
+                    throw new Error(text || 'Error al realizar la puja');
+                }
+                showToast('success', '¡Puja realizada con éxito!');
+                // refrescar la sala
+                mostrarSala(id);
+            } catch (err) {
+                console.error(err);
+                showToast('danger', 'No se pudo enviar la puja: ' + (err.message || err));
+            }
+        };
+
+        // Nota: lógica SignalR removida en esta restauración. Si se desea reactivar,
+        // puede agregarse aquí una conexión simple a /hubs/auction y listeners para actualizar la sala en tiempo real.
+
+    } catch (error) {
+        console.error('Error al cargar sala:', error);
+        showToast('danger', 'No se pudo cargar la sala. Ver consola.');
+    }
+}
+
+// Toast helper (Bootstrap)
+function showToast(type, message, title) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toastId = 'toast-' + Date.now();
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-bg-transparent border-0`;
+    toastEl.id = toastId;
+    toastEl.role = 'alert';
+    toastEl.ariaLive = 'assertive';
+    toastEl.ariaAtomic = 'true';
+
+    const bgClass = type === 'success' ? 'toast-custom-success' : (type === 'danger' ? 'toast-custom-danger' : 'bg-dark text-white');
+
+    toastEl.innerHTML = `
+        <div class="d-flex ${bgClass}" style="padding:12px;border-radius:8px;min-width:240px;">
+            <div class="toast-body">${title ? `<strong>${title}</strong><br/>` : ''}${message}</div>
+            <button type="button" class="btn-close btn-close-white ms-auto me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    container.appendChild(toastEl);
+    const bsToast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    bsToast.show();
+    // Remover después de ocultarse
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
 }
 
 function renderizarDestacada(subasta, contenedor) {
@@ -179,7 +333,7 @@ function renderizarDestacada(subasta, contenedor) {
                         <div class="duracion-subasta mt-1" style="font-size: 0.85rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                     </div>
                 </div>
-                <a href="/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
+                <a href="#" data-id="${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold ver-sala">Ofertar Ahora</a>
             </div>
         </div>
     `;

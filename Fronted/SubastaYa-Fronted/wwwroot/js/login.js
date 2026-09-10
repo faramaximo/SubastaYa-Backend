@@ -27,7 +27,7 @@
                 let errorMessage = "Ocurrió un error en el servidor.";
                 try {
                     const errorData = await response.json();
-                    errorMessage = errorData.mensaje || errorMessage;
+                    errorMessage = errorData.error || errorData.mensaje || errorMessage;
                 } catch (e) {
                     // Si no era JSON, nos quedamos con el mensaje genérico
                     console.error("El servidor devolvió un error sin formato JSON");
@@ -40,6 +40,10 @@
             // Guardamos los datos de la sesión exitosa
             sessionStorage.setItem("subastaya_user_id", data.id); 
             sessionStorage.setItem("subastaya_user_name", data.nombre); 
+            // Guardamos el token JWT en localStorage para usarlo en peticiones protegidas
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+            }
 
             // Redirigimos al catálogo
             window.location.href = "/index.html";
