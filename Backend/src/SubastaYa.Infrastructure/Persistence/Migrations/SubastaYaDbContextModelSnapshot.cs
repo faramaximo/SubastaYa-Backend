@@ -248,6 +248,9 @@ namespace SubastaYa.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("EmailVerificado")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime(6)");
 
@@ -257,6 +260,18 @@ namespace SubastaYa.Infrastructure.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("TokenRecuperacionExpiraUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenRecuperacionHash")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("TokenVerificacionExpiraUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenVerificacionHash")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");

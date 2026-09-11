@@ -14,7 +14,7 @@
 			.form-control, .form-select {
 			background-color: var(--bg-input) !important;
 			border: 1px solid var(--border-color) !important;
-			color: #ffffff !important;
+			color: var(--text-principal) !important;
 			padding: 14px 18px;
 			border-radius: 12px;
 			transition: all 0.3s ease;
@@ -22,7 +22,7 @@
 			}
 
 			.form-control:focus, .form-select:focus {
-			background-color: #16192b !important;
+			background-color: var(--bg-contenedor) !important;
 			border-color: var(--accent-purple) !important;
 			box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2) !important;
 			}
@@ -34,14 +34,14 @@
 
 			.form-select option {
 			background-color: var(--bg-input);
-			color: #ffffff;
+			color: var(--text-principal);
 			}
 
 			/* Títulos de sección */
 			.section-title {
 			font-size: 1.1rem;
 			font-weight: 700;
-			color: #a29bfe; /* Violeta claro */
+			color: var(--accent-color);
 			margin-bottom: 20px;
 			display: flex;
 			align-items: center;
@@ -73,48 +73,34 @@
 			transform: none;
 			box-shadow: none;
 			}
+
+			.datetime-picker {
+			background: var(--bg-contenedor);
+			border: 1px solid var(--borde);
+			border-radius: 14px;
+			padding: 16px;
+			}
+
+			.datetime-picker__fields { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+			.datetime-picker__quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+			.datetime-picker__quick-actions button { border: 1px solid var(--borde); background: transparent; color: var(--text-principal); border-radius: 8px; padding: 7px 10px; font-size: .82rem; font-weight: 600; }
+			.datetime-picker__quick-actions button:hover { border-color: var(--accent-color); color: var(--accent-color); }
+			@media (max-width: 576px) { .datetime-picker__fields { grid-template-columns: 1fr; } }
 		</style>
 	</head>
 	<body>
 		<div class="app-container">
-			<!-- BARRA LATERAL -->
-			<aside class="sidebar">
-				<div class="sidebar-brand mb-4">
-					<h2>SubastaYa</h2>
+			<!-- // QUÉ HACE: muestra la navegación y la sesión en la cabecera. -->
+			<!-- // POR QUÉ: el formulario aprovecha el ancho completo de la pantalla. -->
+			<header class="market-header">
+				<div class="market-header__top">
+					<a class="market-logo" href="/index.html">SubastaYa</a>
+					<nav class="market-nav" aria-label="Navegación principal">
+						<a href="/index.html">Explorar</a><a href="/crear-subasta.html" class="active">Crear subasta</a><a href="/billetera.html">Billetera</a><a href="/panel.html">Mis actividades</a>
+					</nav>
+					<div class="header-controls"><button id="themeToggle" class="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false"><span class="theme-toggle__icon" aria-hidden="true"></span><span class="theme-toggle__label">Oscuro</span></button><div class="auth-actions" aria-label="Acciones de cuenta"></div></div>
 				</div>
-
-				<nav class="sidebar-nav d-flex flex-column">
-					
-					<a href="/index.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Explorar Catálogo
-					</a>
-
-					<a href="/crear-subasta.html" class="active text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Crear Subasta
-					</a>
-
-					<a href="/billetera.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Billetera Virtual
-					</a>
-				
-					<a href="/panel.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Mis Actividades
-					</a>
-
-				</nav>
-
-				<!-- Agregamos un margen automático top (mt-auto) para empujar esto bien abajo -->
-				<div class="sidebar-bottom mt-auto">
-					<!-- 👇 Le damos contraste a configuración con text-white-50 👇 -->
-					<a href="#" class="text-white-50 text-decoration-none d-block mb-3">
-						Configuración
-					</a>
-					<a href="#" id="btnCerrarSesion" class="text-danger fw-bold text-decoration-none d-block">
-						Cerrar sesión
-					</a>
-				</div>
-			</aside>
-
+			</header>
 			<!-- CONTENIDO PRINCIPAL -->
 			<main class="main-content">
 				<div class="mb-4">
@@ -189,16 +175,29 @@
 
 						<!-- SECCIÓN 3: TIEMPOS -->
 						<h4 class="section-title">Ventana Temporal</h4>
-						<div class="row g-4 mb-5">
+						<fieldset class="row g-4 mb-5">
+							<legend class="visually-hidden">Fecha y horario de la subasta</legend>
 							<div class="col-md-6">
-								<label class="mb-2 text-white fw-bold" style="font-size: 0.85rem;">Fecha y Hora de Inicio *</label>
-								<input type="datetime-local" class="form-control" id="fechaInicio" required="">
+								<div class="datetime-picker">
+									<label class="mb-3 text-white fw-bold d-block" style="font-size: .85rem;" for="fechaInicio">Inicio *</label>
+									<div class="datetime-picker__fields">
+										<div><label class="visually-hidden" for="fechaInicio">Fecha de inicio</label><input type="date" class="form-control" id="fechaInicio" required></div>
+										<div><label class="visually-hidden" for="horaInicio">Hora de inicio</label><input type="time" class="form-control" id="horaInicio" step="900" required></div>
+									</div>
+									<div class="datetime-picker__quick-actions"><button type="button" data-schedule="start-now">Empezar en 15 min</button></div>
+								</div>
 							</div>
 							<div class="col-md-6">
-								<label class="mb-2 text-white fw-bold" style="font-size: 0.85rem;">Fecha y Hora de Cierre *</label>
-								<input type="datetime-local" class="form-control" id="fechaFin" required="">
+								<div class="datetime-picker">
+									<label class="mb-3 text-white fw-bold d-block" style="font-size: .85rem;" for="fechaFin">Cierre *</label>
+									<div class="datetime-picker__fields">
+										<div><label class="visually-hidden" for="fechaFin">Fecha de cierre</label><input type="date" class="form-control" id="fechaFin" required></div>
+										<div><label class="visually-hidden" for="horaFin">Hora de cierre</label><input type="time" class="form-control" id="horaFin" step="900" required></div>
+									</div>
+									<div class="datetime-picker__quick-actions"><button type="button" data-schedule="end-hour">Finalizar 1 hora después</button></div>
+								</div>
 							</div>
-						</div>
+						</fieldset>
 
 						<!-- Botón de Envío -->
 

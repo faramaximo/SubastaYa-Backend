@@ -38,12 +38,10 @@
             const data = await response.json();
 
             // Guardamos los datos de la sesión exitosa
-            sessionStorage.setItem("subastaya_user_id", data.id); 
-            sessionStorage.setItem("subastaya_user_name", data.nombre); 
-            // Guardamos el token JWT en localStorage para usarlo en peticiones protegidas
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            }
+            if (!data?.id || !data?.token) throw new Error("No se pudo iniciar una sesión válida.");
+            sessionStorage.setItem("subastaya_user_id", String(data.id));
+            sessionStorage.setItem("subastaya_user_name", data.nombre || "Usuario");
+            localStorage.setItem('token', data.token);
 
             // Redirigimos al catálogo
             window.location.href = "/index.html";

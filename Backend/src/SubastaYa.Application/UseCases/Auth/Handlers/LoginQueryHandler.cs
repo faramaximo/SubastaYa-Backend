@@ -37,6 +37,9 @@ public class LoginQueryHandler
         if (!passwordValida)
             throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Email o contraseña incorrectos.");
 
+        if (!usuario.EmailVerificado)
+            throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Verificá tu correo electrónico antes de ingresar.");
+
         return new AuthUserDto(usuario.Id, usuario.Nombre, usuario.Email);
     }
 }

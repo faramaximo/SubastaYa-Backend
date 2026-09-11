@@ -46,7 +46,7 @@ if (!userId) {
                                 <h4 class="fw-bold m-0">${p.titulo}</h4>
                                 <span class="badge-estado ${badgeColor}">${badgeTexto}</span>
                             </div>
-                            <!-- 👇 ACÁ ARREGLAMOS EL CONTRASTE (text-white-50 y text-white) 👇 -->
+                            <!-- Contraste para texto secundario y principal. -->
                             <div class="row mt-3 text-white-50" style="font-size: 0.9rem;">
                                 <div class="col-4"><strong class="text-white">Tu puja más alta:</strong><br>$${p.miMaximaPuja}</div>
                                 <div class="col-4"><strong class="text-white">Oferta actual:</strong><br>$${p.ofertaGanadora}</div>
@@ -98,7 +98,7 @@ if (!userId) {
                                 <h4 class="fw-bold m-0">${v.titulo}</h4>
                                 <span class="badge-estado ${badgeColor}">${badgeTexto}</span>
                             </div>
-                            <!-- 👇 ACÁ ARREGLAMOS EL CONTRASTE (text-white-50 y text-white) 👇 -->
+                            <!-- Contraste para texto secundario y principal. -->
                             <div class="row mt-3 text-white-50" style="font-size: 0.9rem;">
                                 <div class="col-4"><strong class="text-white">Precio Base:</strong><br>$${v.precioBase}</div>
                                 <div class="col-4"><strong class="text-white">Oferta Más Alta:</strong><br>$${v.ofertaMasAlta}</div>

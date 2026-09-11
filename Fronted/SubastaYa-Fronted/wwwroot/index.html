@@ -11,35 +11,50 @@
     <link rel="stylesheet" href="/css/catalogo.css" />
     <link rel="stylesheet" href="/css/billetera.css" />
     <style>
-      body { font-family: 'Inter', sans-serif; background:#0c0e16; color:#e8e6ff; }
-      .app-container{display:flex;min-height:100vh}
-      .sidebar{width:240px;padding:20px;background:linear-gradient(180deg,#080814,#0b0d19);border-right:1px solid rgba(255,255,255,0.03)}
-      .main-content{flex:1;padding:28px}
-      .search-input{width:100%;padding:10px 14px;border-radius:8px;background:#0f1220;border:1px solid rgba(255,255,255,0.04);color:#fff}
-      #salaOferta{font-size:2rem;color:#ffd166}
+      body { font-family: 'Inter', sans-serif; background: var(--bg-principal); color: var(--text-principal); }
+      .auction-room { max-width: 1180px; margin: 0 auto; }
+      .auction-room__card { background: var(--bg-contenedor); border: 1px solid var(--borde); border-radius: 20px; overflow: hidden; }
+      .auction-room__image { aspect-ratio: 1 / .78; background: var(--bg-principal); display: grid; place-items: center; overflow: hidden; }
+      .auction-room__image img { width: 100%; height: 100%; object-fit: contain; }
+      .auction-room__current { color: var(--accent-color); font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 800; letter-spacing: -1.5px; }
+      .auction-room__minimum { color: var(--text-secundario); font-size: .9rem; }
+      .auction-room__bid { background: var(--bg-principal); border: 1px solid var(--borde); border-radius: 14px; padding: 16px; }
+      .auction-room__history { max-height: 380px; overflow-y: auto; }
+      .auction-room__history .list-group-item { background: transparent; border-color: var(--borde); color: var(--text-principal); }
+      .auction-room__bidder { font-weight: 700; }
+      .auction-room__timestamp { color: var(--text-secundario); font-size: .8rem; }
+      .auction-room__amount { color: var(--accent-color); font-weight: 800; }
     </style>
   </head>
   <body>
     <div class="app-container">
-      <aside class="sidebar">
-        <div class="sidebar-brand mb-4"><h2>SubastaYa</h2></div>
-        <nav class="sidebar-nav d-flex flex-column">
-          <a href="#" class="active text-decoration-none mb-3">Explorar Catálogo</a>
-          <a href="/crear-subasta.html" class="text-decoration-none mb-3">Crear Subasta</a>
-          <a href="/billetera.html" class="text-decoration-none mb-3">Billetera Virtual</a>
-          <a href="/panel.html" class="text-decoration-none mb-3">Mis Actividades</a>
-        </nav>
-        <div class="sidebar-bottom mt-auto">
-          <!-- Espacio dinámico: auth.js rellenará aquí 'Iniciar Sesión' o 'Conectado como' -->
-          <div class="sidebar-bottom-placeholder"></div>
+      <!-- // QUÉ HACE: presenta navegación, marca y cuenta en una cabecera horizontal. -->
+      <!-- // POR QUÉ: el catálogo necesita el ancho que antes ocupaba la barra lateral. -->
+      <header class="market-header">
+        <div class="market-header__top">
+          <a class="market-logo" href="/index.html" aria-label="Ir al inicio">SubastaYa</a>
+          <nav class="market-nav" aria-label="Navegación principal">
+            <a href="/index.html" class="active">Explorar</a>
+            <a href="/crear-subasta.html">Crear subasta</a>
+            <a href="/billetera.html">Billetera</a>
+            <a href="/panel.html">Mis actividades</a>
+          </nav>
+          <!-- // QUÉ HACE: permite cambiar el tema sin salir de la página. -->
+          <!-- // POR QUÉ: la preferencia visual pertenece a la navegación global. -->
+          <div class="header-controls">
+            <button id="themeToggle" class="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">
+              <span class="theme-toggle__icon" aria-hidden="true"></span>
+              <span class="theme-toggle__label">Oscuro</span>
+            </button>
+            <div class="auth-actions" aria-label="Acciones de cuenta"></div>
+          </div>
         </div>
-      </aside>
+        <div class="market-header__bottom">
+          <input id="buscadorGeneral" class="search-input" placeholder="Buscar por título, artículo o descripción..." aria-label="Buscar subastas" />
+        </div>
+      </header>
 
       <main class="main-content">
-        <header class="mb-4">
-          <input id="buscadorGeneral" class="search-input" placeholder="Buscar por título, artículo o descripción..." />
-        </header>
-
         <!-- Catálogo visible por defecto -->
         <section id="catalogo-view" class="container py-4">
           <div id="featuredContainer" class="mb-4"></div>
@@ -47,24 +62,104 @@
             <h3 class="fw-bold m-0">Todas las Subastas</h3>
             <button id="btnLimpiar" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</button>
           </div>
-          <div id="gridSubastas" class="row"></div>
+          <div class="catalog-layout">
+            <aside class="catalog-filters" aria-labelledby="catalogFiltersTitle">
+              <div class="catalog-filters__heading">
+                <h4 id="catalogFiltersTitle">Filtrar y ordenar</h4>
+                <span>Encontrá publicaciones según lo que buscás</span>
+              </div>
+              <div class="catalog-filters__groups">
+              <details class="filter-accordion" open>
+                <summary>Estado</summary>
+                <div class="filter-accordion__content">
+                  <label for="filtroEstado">Disponibilidad de la subasta</label>
+                  <select class="form-select" id="filtroEstado">
+                    <option value="todos">Todas las subastas</option>
+                    <option value="1">Activas (en curso)</option>
+                    <option value="0">Próximas</option>
+                    <option value="2">Finalizadas</option>
+                  </select>
+                </div>
+              </details>
+
+              <details class="filter-accordion">
+                <summary>Categoría</summary>
+                <div class="filter-accordion__content">
+                  <label for="filtroCategoria">Tipo de publicación</label>
+                  <select class="form-select" id="filtroCategoria">
+                    <option value="todas">Todas las categorías</option>
+                    <option value="1">Tecnología</option>
+                    <option value="2">Coleccionables</option>
+                    <option value="3">Arte</option>
+                    <option value="4">Vehículos</option>
+                  </select>
+                </div>
+              </details>
+
+              <details class="filter-accordion">
+                <summary>Rango de precio</summary>
+                <div class="filter-accordion__content">
+                  <label for="precioMin">Precio de la puja actual</label>
+                  <div class="filter-price-range">
+                    <input type="number" class="form-control" id="precioMin" placeholder="Mínimo" min="0" inputmode="decimal">
+                    <span aria-hidden="true">a</span>
+                    <input type="number" class="form-control" id="precioMax" placeholder="Máximo" min="0" inputmode="decimal">
+                  </div>
+                </div>
+              </details>
+
+              <details class="filter-accordion">
+                <summary>Ordenar resultados</summary>
+                <div class="filter-accordion__content">
+                  <span class="filter-accordion__label">Mostrá primero</span>
+                  <div class="sort-pills" role="group" aria-label="Ordenar resultados">
+                    <button type="button" class="sort-pill active" data-sort="menor-tiempo">Cierra pronto</button>
+                    <button type="button" class="sort-pill" data-sort="mayor-tiempo">Mayor duración</button>
+                    <button type="button" class="sort-pill" data-sort="menor-puja">Menor puja</button>
+                    <button type="button" class="sort-pill" data-sort="mayor-puja">Mayor puja</button>
+                  </div>
+                </div>
+              </details>
+              </div>
+            </aside>
+            <div id="gridSubastas" class="row catalog-layout__results"></div>
+          </div>
         </section>
 
         <!-- Sala oculta por defecto -->
-        <section id="sala-view" class="container py-4 d-none">
+        <section id="sala-view" class="auction-room py-4 d-none" aria-live="polite">
           <a href="#" id="btnVolverCatalogo" class="btn btn-link mb-3">← Volver al catálogo</a>
-          <div class="row">
-            <div class="col-12 col-md-6 mb-3"><img id="salaImagen" src="" class="img-fluid rounded" alt="Imagen" /></div>
-            <div class="col-12 col-md-6">
-              <h2 id="salaTitulo"></h2>
-              <p id="salaDescripcion" class="text-muted"></p>
-              <div class="mb-3">Precio actual: <strong id="salaOferta">$0</strong></div>
-              <div class="mb-3 input-group">
-                <input id="montoPuja" type="number" class="form-control" placeholder="Monto" min="0" step="0.01" />
-                <button id="btnOfertar" class="btn btn-primary">Ofertar</button>
+          <div class="auction-room__card">
+            <div class="row g-0">
+              <div class="col-lg-6">
+                <div class="auction-room__image"><img id="salaImagen" src="" alt="Imagen de la subasta"></div>
               </div>
-              <h5>Historial de pujas</h5>
-              <ul id="historialPujas" class="list-group"></ul>
+              <div class="col-lg-6 p-4 p-md-5">
+                <p class="text-muted mb-2">Sala de pujas en vivo</p>
+                <h2 id="salaTitulo" class="fw-bold mb-3"></h2>
+                <p id="salaDescripcion" class="text-muted mb-4"></p>
+                <div class="mb-4">
+                  <span class="text-muted d-block small">Oferta actual</span>
+                  <strong id="salaOferta" class="auction-room__current">$0</strong>
+                  <span id="salaMinima" class="auction-room__minimum d-block mt-1">Calculando puja mínima…</span>
+                </div>
+                <form id="formPuja" class="auction-room__bid" novalidate>
+                  <label for="montoPuja" class="fw-bold mb-2">Tu puja</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input id="montoPuja" type="number" class="form-control" min="0" step="0.01" inputmode="decimal" required>
+                    <button id="btnOfertar" class="btn btn-primary" type="button">Ofertar</button>
+                  </div>
+                  <p id="pujaAyuda" class="text-muted small mb-0 mt-2"></p>
+                </form>
+              </div>
+            </div>
+            <div class="border-top p-4 p-md-5" style="border-color: var(--borde) !important;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 fw-bold mb-0">Pujas recientes</h3>
+                <span id="contadorPujas" class="text-muted small"></span>
+              </div>
+              <ul id="historialPujas" class="auction-room__history list-group list-group-flush"></ul>
             </div>
           </div>
         </section>

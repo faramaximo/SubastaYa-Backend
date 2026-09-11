@@ -27,6 +27,55 @@
     const form = document.getElementById("formCrearSubasta");
     const alerta = document.getElementById("alertaFormulario");
     const btnSubmit = document.getElementById("btnSubmit");
+    const fechaInicio = document.getElementById("fechaInicio");
+    const horaInicio = document.getElementById("horaInicio");
+    const fechaFin = document.getElementById("fechaFin");
+    const horaFin = document.getElementById("horaFin");
+
+    const toInputDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+    const toInputTime = (date) => date.toTimeString().slice(0, 5);
+    const roundToQuarterHour = (date) => {
+        const rounded = new Date(date);
+        rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15, 0, 0);
+        return rounded;
+    };
+    const setSchedule = (start, end) => {
+        fechaInicio.value = toInputDate(start);
+        horaInicio.value = toInputTime(start);
+        fechaFin.value = toInputDate(end);
+        horaFin.value = toInputTime(end);
+        fechaInicio.min = toInputDate(new Date());
+        fechaFin.min = toInputDate(start);
+    };
+    const getDateTime = (dateInput, timeInput) => new Date(`${dateInput.value}T${timeInput.value}`);
+
+    // QUÉ HACE: ofrece horarios iniciales y accesos rápidos redondeados a 15 minutos.
+    // POR QUÉ: evita que la persona tenga que construir manualmente cada fecha y hora.
+    const defaultStart = roundToQuarterHour(new Date(Date.now() + 15 * 60 * 1000));
+    setSchedule(defaultStart, new Date(defaultStart.getTime() + 60 * 60 * 1000));
+
+    document.querySelector('[data-schedule="start-now"]').addEventListener("click", () => {
+        const start = roundToQuarterHour(new Date(Date.now() + 15 * 60 * 1000));
+        const currentEnd = getDateTime(fechaFin, horaFin);
+        setSchedule(start, currentEnd > start ? currentEnd : new Date(start.getTime() + 60 * 60 * 1000));
+    });
+
+    document.querySelector('[data-schedule="end-hour"]').addEventListener("click", () => {
+        const start = getDateTime(fechaInicio, horaInicio);
+        const validStart = Number.isNaN(start.getTime()) ? defaultStart : start;
+        const end = new Date(validStart.getTime() + 60 * 60 * 1000);
+        fechaFin.value = toInputDate(end);
+        horaFin.value = toInputTime(end);
+    });
+
+    fechaInicio.addEventListener("change", () => {
+        fechaFin.min = fechaInicio.value;
+    });
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault(); 
@@ -40,8 +89,8 @@
         const precioBase = parseFloat(document.getElementById("precioBase").value);
         const incrementoMinimo = parseFloat(document.getElementById("incrementoMinimo").value);
         
-        const fechaInicioStr = document.getElementById("fechaInicio").value;
-        const fechaFinStr = document.getElementById("fechaFin").value;
+        const fechaInicioStr = fechaInicio.value && horaInicio.value ? `${fechaInicio.value}T${horaInicio.value}` : "";
+        const fechaFinStr = fechaFin.value && horaFin.value ? `${fechaFin.value}T${horaFin.value}` : "";
 
         // 2. Validaciones de Negocio (Módulo 2)
         if (!titulo.trim() || !urlImagen.trim() || !descripcion.trim() || !fechaInicioStr || !fechaFinStr || isNaN(categoriaId) || isNaN(precioBase) || isNaN(incrementoMinimo)) {
@@ -59,7 +108,7 @@
             return;
         }
 
-        // 👇 CREAMOS LAS VARIABLES DE FECHA ANTES DE USARLAS 👇
+        // Creamos las variables de fecha antes de usarlas.
         const inicio = new Date(fechaInicioStr);
         const fin = new Date(fechaFinStr);
         const ahora = new Date(); 
@@ -73,7 +122,7 @@
             mostrarAlerta("Error: La fecha de cierre debe ser posterior a la fecha de inicio.", "danger");
             return;
         }
-        // 👆 FIN DE LAS VALIDACIONES TEMPORALES 👆
+        // Fin de las validaciones temporales.
 
         // 3. Armar el Data Transfer Object (DTO)
         const nuevaSubasta = {
@@ -105,6 +154,8 @@
 
             mostrarAlerta("¡Subasta publicada con éxito! Ya está disponible en el catálogo.", "success");
             form.reset(); 
+            const nextStart = roundToQuarterHour(new Date(Date.now() + 15 * 60 * 1000));
+            setSchedule(nextStart, new Date(nextStart.getTime() + 60 * 60 * 1000));
             previewImagen.classList.add("d-none");
             
         } catch (error) {

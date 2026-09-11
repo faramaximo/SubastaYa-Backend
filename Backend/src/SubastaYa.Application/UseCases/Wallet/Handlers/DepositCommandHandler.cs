@@ -35,7 +35,7 @@ public class DepositCommandHandler
 
         var transaccion = new TransaccionLedger
         {
-            BilleteraId = billetera.Id,
+            Billetera = billetera,
             Monto = cmd.Monto,
             Tipo = TipoTransaccion.Deposito,
             Fecha = DateTime.UtcNow

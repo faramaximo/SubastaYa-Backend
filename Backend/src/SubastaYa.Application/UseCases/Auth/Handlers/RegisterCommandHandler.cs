@@ -29,7 +29,8 @@ public class RegisterCommandHandler
             Nombre = cmd.Nombre,
             Email = cmd.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(cmd.Password),
-            FechaRegistro = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow,
+            EmailVerificado = false
         };
 
         // Regla de negocio: Billetera en cero. 

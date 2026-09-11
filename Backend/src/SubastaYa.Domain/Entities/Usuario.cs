@@ -11,6 +11,11 @@ namespace SubastaYa.Domain.Entities
         public string PasswordHash { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+        public bool EmailVerificado { get; set; }
+        public string? TokenVerificacionHash { get; set; }
+        public DateTime? TokenVerificacionExpiraUtc { get; set; }
+        public string? TokenRecuperacionHash { get; set; }
+        public DateTime? TokenRecuperacionExpiraUtc { get; set; }
 
         // Navegación
         public Billetera? Billetera { get; set; }

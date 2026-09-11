@@ -14,35 +14,17 @@
 	</head>
 	<body>
 		<div class="app-container">
-			<!-- BARRA LATERAL (SIDEBAR) -->
-			<aside class="sidebar">
-				<div class="sidebar-brand mb-4">
-					<h2>SubastaYa</h2>
+			<!-- // QUÉ HACE: reemplaza el menú lateral por navegación superior. -->
+			<!-- // POR QUÉ: mantiene disponible la cuenta sin reducir el espacio de la billetera. -->
+			<header class="market-header">
+				<div class="market-header__top">
+					<a class="market-logo" href="/index.html">SubastaYa</a>
+					<nav class="market-nav" aria-label="Navegación principal">
+						<a href="/index.html">Explorar</a><a href="/crear-subasta.html">Crear subasta</a><a href="/billetera.html" class="active">Billetera</a><a href="/panel.html">Mis actividades</a>
+					</nav>
+					<div class="header-controls"><button id="themeToggle" class="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false"><span class="theme-toggle__icon" aria-hidden="true"></span><span class="theme-toggle__label">Oscuro</span></button><div class="auth-actions" aria-label="Acciones de cuenta"></div></div>
 				</div>
-				<nav class="sidebar-nav d-flex flex-column">
-					<a href="/index.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Explorar Catálogo
-					</a>
-					<a href="/crear-subasta.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Crear Subasta
-					</a>
-					<a href="/billetera.html" class="active text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Billetera Virtual
-					</a>
-					<a href="/panel.html" class="text-decoration-none border-bottom border-secondary border-opacity-25 pb-3 mb-3">
-						Mis Actividades
-					</a>
-				</nav>
-				<div class="sidebar-bottom mt-auto">
-					<a href="#" class="text-white-50 text-decoration-none d-block mb-3">
-						Configuración
-					</a>
-					<a href="#" id="btnCerrarSesion" class="text-danger fw-bold text-decoration-none d-block">
-						Cerrar sesión
-					</a>
-				</div>
-			</aside>
-
+			</header>
 			<!-- CONTENIDO PRINCIPAL DE LA BILLETERA -->
 			<main class="main-content">
 				<section id="wallet-view" class="view-section">

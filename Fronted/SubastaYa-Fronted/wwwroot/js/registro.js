@@ -39,7 +39,7 @@
             }
 
             // Registro exitoso
-            msjBox.innerText = "¡Cuenta creada con éxito! Redirigiendo al login...";
+            msjBox.innerText = "Cuenta creada con éxito. Redirigiendo al ingreso...";
             msjBox.classList.add("alert-success");
             msjBox.classList.remove("d-none", "alert-danger");
 
