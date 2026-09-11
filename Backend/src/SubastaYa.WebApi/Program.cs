@@ -16,6 +16,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using SubastaYa.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,7 @@ builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ILedgerRepository, LedgerRepository>();
 builder.Services.AddScoped<IWalletQueries, WalletQueries>();
 builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 // 3. Registros de Aplicación (Auth, Subastas, Billetera y Pujas)
 builder.Services.AddScoped<RegisterCommandHandler>();
