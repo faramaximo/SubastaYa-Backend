@@ -26,6 +26,7 @@ namespace SubastaYa.Application.UseCases.Auctions.Handlers
                 cmd.UrlImagen,
                 cmd.PrecioBase,
                 cmd.IncrementoMinimo,
+                cmd.FechaInicio,
                 cmd.FechaFin
             );
 

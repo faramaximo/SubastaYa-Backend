@@ -12,6 +12,7 @@ namespace SubastaYa.Application.UseCases.Auctions.Commands
         string UrlImagen, 
         decimal PrecioBase,
         decimal IncrementoMinimo,
+        DateTime FechaInicio,
         DateTime FechaFin
     );
 }

@@ -34,10 +34,13 @@ namespace SubastaYa.Domain.Entities
         protected Subasta() { }
 
         // 4. Constructor de negocio: asegura que la entidad nace en un estado válido
-        public Subasta(int vendedorId, int categoriaId, string titulo, string descripcion, string urlImagen, decimal precioBase, decimal incrementoMinimo, DateTime fechaFin)
+        public Subasta(int vendedorId, int categoriaId, string titulo, string descripcion, string urlImagen, decimal precioBase, decimal incrementoMinimo, DateTime fechaInicio, DateTime fechaFin)
         {
             if (precioBase <= 0)
                 throw new DomainException("El precio base debe ser mayor a cero.");
+
+            if (fechaInicio >= fechaFin)
+                throw new DomainException("La fecha de inicio debe ser anterior a la fecha de fin.");
 
             if (fechaFin <= DateTime.UtcNow)
                 throw new DomainException("La fecha de fin debe ser en el futuro.");
@@ -49,9 +52,17 @@ namespace SubastaYa.Domain.Entities
             UrlImagen = urlImagen;
             PrecioBase = precioBase;
             IncrementoMinimo = incrementoMinimo;
-            FechaInicio = DateTime.UtcNow;
+            FechaInicio = fechaInicio;
             FechaFin = fechaFin;
-            Estado = EstadoSubasta.Activa;
+            Estado = fechaInicio > DateTime.UtcNow
+                ? EstadoSubasta.Programada
+                : EstadoSubasta.Activa;
+        }
+
+        // Mantiene compatibilidad con las subastas creadas internamente para datos de prueba.
+        public Subasta(int vendedorId, int categoriaId, string titulo, string descripcion, string urlImagen, decimal precioBase, decimal incrementoMinimo, DateTime fechaFin)
+            : this(vendedorId, categoriaId, titulo, descripcion, urlImagen, precioBase, incrementoMinimo, DateTime.UtcNow, fechaFin)
+        {
         }
 
         // 5. Comportamiento (Reglas de Negocio)
