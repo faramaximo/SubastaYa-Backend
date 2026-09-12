@@ -196,9 +196,8 @@ document.addEventListener('click', function (e) {
     if (id) mostrarSala(id);
 });
 
-// Botón volver al catálogo
-// Botón volver al catálogo (simple)
-document.addEventListener('click', function (e) {
+// Botón volver al catálogo: obtiene el estado actualizado antes de mostrarlo.
+document.addEventListener('click', async function (e) {
     const volver = e.target.closest('#btnVolverCatalogo');
     if (!volver) return;
     e.preventDefault();
@@ -218,6 +217,7 @@ document.addEventListener('click', function (e) {
     salaVersion = null;
     if (salaRefreshId) clearInterval(salaRefreshId);
     salaRefreshId = null;
+    await obtenerCatalogo();
     if (catalogEl) catalogEl.classList.remove('d-none');
 });
 
@@ -325,8 +325,29 @@ async function mostrarSala(id) {
                     const text = json?.error || json?.message || await r.text();
                     throw new Error(text || 'Error al realizar la puja');
                 }
+
+                // La API devuelve NuevaFechaFin (camelCase en JSON), no fechaFin.
+                const resultado = await r.json();
+
                 showToast('success', '¡Puja realizada con éxito!');
-                // refrescar la sala
+
+                // 2. LA MAGIA: Actualizamos el reloj del catálogo en segundo plano sin recargar
+                const nuevaFechaFin = resultado?.nuevaFechaFin || resultado?.NuevaFechaFin;
+                if (nuevaFechaFin) {
+                    const btnSala = document.querySelector(`.ver-sala[data-id="${id}"]`);
+                    if (btnSala) {
+                        const card = btnSala.closest('.auction-card, .featured-card');
+                        if (card) {
+                            const timer = card.querySelector('.live-timer');
+                            if (timer) {
+                                // Esto le inyecta los 2 minutos extra al reloj al instante
+                                timer.setAttribute('data-fin', nuevaFechaFin);
+                            }
+                        }
+                    }
+                }
+
+                // Refrescar los datos visuales de la sala
                 mostrarSala(id);
             } catch (err) {
                 console.error(err);
@@ -418,7 +439,7 @@ function calcularDiferenciaTiempo(fechaStr) {
 }
 
 function formatearFechaRestante(diferenciaMs) {
-    if (diferenciaMs <= 0) return "00:00:00";
+    if (diferenciaMs <= 0) return "0h 00m 00s";
     
     const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
     const horas = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -429,7 +450,43 @@ function formatearFechaRestante(diferenciaMs) {
         return `${dias}d ${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m`;
     }
 
-    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+    return `${horas}h ${String(minutos).padStart(2, '0')}m ${String(segundos).padStart(2, '0')}s`;
+}
+
+async function conectarSignalR(subastaId) {
+    if (!hubConnection) {
+        hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl(`${API_BASE_URL}/hubs/auction`)
+            .withAutomaticReconnect()
+            .build();
+
+        hubConnection.on("NuevaPujaRegistrada", (resultado) => {
+            // Actualizar el reloj de la tarjeta en el catálogo al instante para TODOS
+            const btnSala = document.querySelector(`.ver-sala[data-id="${resultado.subastaId}"]`);
+            if (btnSala) {
+                const card = btnSala.closest('.auction-card, .featured-card');
+                if (card) {
+                    const timer = card.querySelector('.live-timer');
+                    if (timer && resultado.fechaFin) {
+                        timer.setAttribute('data-fin', resultado.fechaFin);
+                    }
+                }
+            }
+
+            // Si otro usuario tiene la sala abierta, recargar los datos
+            if (currentSalaId == resultado.subastaId && !document.getElementById('sala-view').classList.contains('d-none')) {
+                mostrarSala(resultado.subastaId);
+            }
+        });
+
+        await hubConnection.start();
+    }
+
+    // IMPORTANTE: Le pedimos al backend que nos meta en el grupo de esta subasta
+    if (hubConnection.state === signalR.HubConnectionState.Connected) {
+        // Tu hub en C# debe tener un método llamado "UnirseASubasta"
+        hubConnection.invoke("UnirseASubasta", subastaId.toString()).catch(console.error);
+    }
 }
 
 function iniciarTemporizadorGlobal() {

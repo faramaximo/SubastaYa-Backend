@@ -192,7 +192,7 @@ function calcularDiferenciaTiempo(fechaStr) {
 }
 
 function formatearFechaRestante(diferenciaMs) {
-    if (diferenciaMs <= 0) return "00:00:00";
+    if (diferenciaMs <= 0) return "0h 00m 00s";
     
     const dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
     const horas = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -203,7 +203,7 @@ function formatearFechaRestante(diferenciaMs) {
         return `${dias}d ${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m`;
     }
 
-    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+    return `${horas}h ${String(minutos).padStart(2, '0')}m ${String(segundos).padStart(2, '0')}s`;
 }
 
 function iniciarTemporizadorGlobal() {

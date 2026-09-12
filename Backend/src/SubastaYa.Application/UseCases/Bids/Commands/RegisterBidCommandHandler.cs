@@ -26,6 +26,9 @@ public class RegisterBidCommandHandler
         _ledgerRepository = ledgerRepository;
     }
 
+
+    //Valida reglas de negocio
+
     public async Task<PujaResponseDto> Handle(RegisterBidCommand command)
     {
         var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)

@@ -38,9 +38,9 @@ namespace SubastaYa.WebApi.Middlewares
             }
             catch (DomainException ex)
             {
-                // 3. Excepción Padre (400 Bad Request)
+                // 3. Excepción Padre (422 Unprocessable Entity)
                 // Atrapa cualquier otro error de negocio que no sea de concurrencia ni de autorización
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
             }
