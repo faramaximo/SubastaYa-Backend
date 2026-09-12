@@ -32,6 +32,8 @@ public class AuctionsController : ControllerBase
         [FromQuery] string? busqueda,
         [FromQuery] string orderBy = "menor-tiempo")
     {
+
+        Console.WriteLine($"\n---> DEBUG: Estado recibido desde Swagger: {estado} <--- \n");
         var query = new SearchAuctionsQuery(estado, categoriaId, precioMin, precioMax, busqueda, orderBy);
         return Ok(await _searchHandler.Handle(query));
     }

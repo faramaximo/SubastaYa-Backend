@@ -1,11 +1,11 @@
-﻿using SubastaYa.Domain.Enums;
+﻿using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
+using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
 
 namespace SubastaYa.Domain.Entities
 {
     public class Subasta
-    {
-        // 1. Setters privados: nadie puede mutar la entidad directamente desde afuera.
+    {   
         public int Id { get; private set; }
         public int VendedorId { get; private set; }
         public int CategoriaId { get; private set; }
@@ -18,7 +18,9 @@ namespace SubastaYa.Domain.Entities
         public DateTime FechaFin { get; private set; }
         public EstadoSubasta Estado { get; private set; }
 
-        public byte[] Version { get; private set; } = Array.Empty<byte>();
+
+        [Timestamp] // <-- Falta esta etiqueta vital
+        public byte[] Version { get; private set; } = Array.Empty<byte>(); // EF Core usará esto para la concurrencia
 
         // Navegación
         public Usuario Vendedor { get; private set; } = null!;

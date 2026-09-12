@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
+using SubastaYa.Domain.Enums;
 using SubastaYa.Infrastructure.Data;
 
 namespace SubastaYa.Infrastructure.Persistence.Queries
@@ -57,11 +58,37 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
 
         public async Task<IEnumerable<AuctionDto>> SearchAuctionsAsync(int? estado, int? categoriaId, decimal? precioMin, decimal? precioMax, string? busqueda, string orderBy)
         {
-            var query = _ctx.Subastas.AsNoTracking().AsQueryable(); // Sin Includes pesados
+            var query = _ctx.Subastas.AsNoTracking().AsQueryable();
 
-            // ... (Acá van los mismos if que tenías para estado, categoriaId, busqueda, precioMin y precioMax)
+            // 1. FILTROS
+            if (estado.HasValue)
+            {
+                query = query.Where(s => s.Estado == (SubastaYa.Domain.Enums.EstadoSubasta)estado.Value);
+            }
 
-            // El Switch de ordenamiento igual que lo tenías
+            if (categoriaId.HasValue)
+            {
+                query = query.Where(s => s.CategoriaId == categoriaId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                var termino = busqueda.Trim().ToLower();
+                query = query.Where(s => s.Titulo.ToLower().Contains(termino) ||
+                                         s.Descripcion.ToLower().Contains(termino));
+            }
+
+            if (precioMin.HasValue)
+            {
+                query = query.Where(s => (s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase) >= precioMin.Value);
+            }
+
+            if (precioMax.HasValue)
+            {
+                query = query.Where(s => (s.Pujas.Max(p => (decimal?)p.Monto) ?? s.PrecioBase) <= precioMax.Value);
+            }
+
+            // 2. ORDENAMIENTO
             query = orderBy switch
             {
                 "mayor-tiempo" => query.OrderByDescending(s => s.FechaFin),
@@ -70,7 +97,7 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
                 _ => query.OrderBy(s => s.FechaFin)
             };
 
-            // PROYECCIÓN DIRECTA A DTO
+            // 3. PROYECCIÓN DIRECTA A DTO
             return await query.Select(s => new AuctionDto
             {
                 Id = s.Id,

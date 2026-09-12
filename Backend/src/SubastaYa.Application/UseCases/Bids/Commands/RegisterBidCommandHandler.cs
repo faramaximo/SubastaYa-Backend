@@ -3,6 +3,7 @@ using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace SubastaYa.Application.UseCases.Bids.Commands;
 
@@ -86,7 +87,15 @@ public class RegisterBidCommandHandler
         var nuevaPuja = subasta.Pujas.MaxBy(p => p.FechaPuja)
             ?? throw new InvalidOperationException("No se pudo registrar la puja.");
 
-        await _unitOfWork.SaveChangesAsync();
+        try 
+        { 
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConcurrencyException("Alguien más realizó una puja al mismo tiempo. Actualizá la subasta y volvé a intentarlo.");
+        }
+       
 
         return new PujaResponseDto(
             nuevaPuja.Id,
