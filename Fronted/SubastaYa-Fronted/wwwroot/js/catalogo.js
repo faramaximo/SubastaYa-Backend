@@ -2,6 +2,7 @@
 
 
 let hubConnection = null;
+let hubConnectionStartPromise = null;
 let currentSalaId = null;
 let salaRefreshId = null;
 let salaVersion = null;
@@ -28,6 +29,7 @@ function formatLocalDateTime(value) {
 document.addEventListener("DOMContentLoaded", () => {
     configurarEventosFiltros();
     obtenerCatalogo();
+    conectarSignalR().catch(error => console.error("No se pudo conectar al tiempo real:", error));
     iniciarTemporizadorGlobal();
     // Asegurar vista por defecto: catálogo visible, sala oculta
     const salaEl = document.getElementById('sala-view');
@@ -287,6 +289,7 @@ async function mostrarSala(id) {
         if (catalogEl) catalogEl.classList.add('d-none');
         if (salaView) salaView.classList.remove('d-none');
         currentSalaId = id;
+        unirseASubasta(id).catch(error => console.error("No se pudo unir a la sala en tiempo real:", error));
         document.getElementById('contadorPujas').textContent = `${pujas.length} ${pujas.length === 1 ? 'puja' : 'pujas'}`;
 
         // Preparar evento ofertar (simple, depende de autenticación)
@@ -453,39 +456,50 @@ function formatearFechaRestante(diferenciaMs) {
     return `${horas}h ${String(minutos).padStart(2, '0')}m ${String(segundos).padStart(2, '0')}s`;
 }
 
-async function conectarSignalR(subastaId) {
+async function conectarSignalR() {
     if (!hubConnection) {
         hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${API_BASE_URL}/hubs/auction`)
             .withAutomaticReconnect()
             .build();
 
-        hubConnection.on("NuevaPujaRegistrada", (resultado) => {
-            // Actualizar el reloj de la tarjeta en el catálogo al instante para TODOS
-            const btnSala = document.querySelector(`.ver-sala[data-id="${resultado.subastaId}"]`);
-            if (btnSala) {
-                const card = btnSala.closest('.auction-card, .featured-card');
-                if (card) {
-                    const timer = card.querySelector('.live-timer');
-                    if (timer && resultado.fechaFin) {
-                        timer.setAttribute('data-fin', resultado.fechaFin);
-                    }
-                }
-            }
-
-            // Si otro usuario tiene la sala abierta, recargar los datos
-            if (currentSalaId == resultado.subastaId && !document.getElementById('sala-view').classList.contains('d-none')) {
-                mostrarSala(resultado.subastaId);
+        // Todas las pestañas reciben este evento para mantener el catálogo sincronizado.
+        hubConnection.on("SubastaActualizada", async () => {
+            const catalogo = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
+            if (catalogo && !catalogo.classList.contains('d-none')) {
+                await obtenerCatalogo();
             }
         });
 
-        await hubConnection.start();
+        // Solo quienes están dentro de la sala reciben el detalle para refrescarla al instante.
+        hubConnection.on("NuevaPujaRegistrada", async (resultado) => {
+            const subastaId = resultado?.subastaId ?? resultado?.SubastaId;
+            const sala = document.getElementById('sala-view');
+            if (String(currentSalaId) === String(subastaId) && sala && !sala.classList.contains('d-none')) {
+                await mostrarSala(subastaId);
+            }
+        });
+
+        // Al reconectar, SignalR asigna una conexión nueva y hay que volver a unirse al grupo.
+        hubConnection.onreconnected(async () => {
+            if (currentSalaId !== null) await unirseASubasta(currentSalaId);
+        });
+
+        hubConnectionStartPromise = hubConnection.start().catch(error => {
+            hubConnection = null;
+            hubConnectionStartPromise = null;
+            throw error;
+        });
     }
 
-    // IMPORTANTE: Le pedimos al backend que nos meta en el grupo de esta subasta
-    if (hubConnection.state === signalR.HubConnectionState.Connected) {
-        // Tu hub en C# debe tener un método llamado "UnirseASubasta"
-        hubConnection.invoke("UnirseASubasta", subastaId.toString()).catch(console.error);
+    await hubConnectionStartPromise;
+    return hubConnection;
+}
+
+async function unirseASubasta(subastaId) {
+    const conexion = await conectarSignalR();
+    if (conexion.state === signalR.HubConnectionState.Connected) {
+        await conexion.invoke("UnirseASubasta", String(subastaId));
     }
 }
 

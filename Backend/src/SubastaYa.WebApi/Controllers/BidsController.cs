@@ -45,6 +45,12 @@ public class BidsController : ControllerBase
             .Group($"subasta-{dto.SubastaId}")
             .SendAsync("NuevaPujaRegistrada", resultado);
 
+        // El catálogo es público: todas las pestañas deben reflejar una nueva oferta
+        // y, especialmente, una posible extensión anti-sniping sin requerir recarga.
+        await _hubContext.Clients
+            .All
+            .SendAsync("SubastaActualizada", resultado);
+
         return Ok(resultado);
     }
 }
