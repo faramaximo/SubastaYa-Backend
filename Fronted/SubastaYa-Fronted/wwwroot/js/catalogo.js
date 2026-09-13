@@ -306,6 +306,30 @@ async function conectarSignalR() {
                 await mostrarSala(subastaId);
             }
         });
+        // NUEVO: Escuchar cuando la subasta termina con un ganador
+        hubConnection.on("SubastaCerrada", async (datos) => {
+            const subastaId = datos?.subastaId ?? datos?.SubastaId;
+            const monto = datos?.montoFinal ?? datos?.MontoFinal;
+            const sala = document.getElementById('sala-view');
+
+            // Solo disparamos el toast visual y el refresco si el usuario está ADENTRO de esta sala
+            if (String(currentSalaId) === String(subastaId) && sala && !sala.classList.contains('d-none')) {
+                showToast('success', `La subasta ha finalizado. Monto ganador: $${monto}`, '¡Subasta Cerrada!');
+                // Asumiendo que tienes una función mostrarSala(id), esto refrescará la UI
+                // para que desaparezca el botón de pujar y se muestre el ganador
+                if (typeof mostrarSala === 'function') await mostrarSala(subastaId);
+            }
+        });
+
+        // NUEVO: Escuchar cuando la subasta termina sin pujas
+        hubConnection.on("SubastaDesierta", async (subastaId) => {
+            const sala = document.getElementById('sala-view');
+
+            if (String(currentSalaId) === String(subastaId) && sala && !sala.classList.contains('d-none')) {
+                showToast('warning', `El tiempo finalizó sin que nadie hiciera una oferta.`, 'Subasta Desierta');
+                if (typeof mostrarSala === 'function') await mostrarSala(subastaId);
+            }
+        });
 
         // Al reconectar, SignalR asigna una conexión nueva y hay que volver a unirse al grupo.
         hubConnection.onreconnected(async () => {
