@@ -15,8 +15,22 @@ public class RegisterBidCommandHandlerTests
     private readonly IWalletRepository _walletRepository = Substitute.For<IWalletRepository>();
     private readonly ILedgerRepository _ledgerRepository = Substitute.For<ILedgerRepository>();
     private readonly IAuctionNotifier _notifier = Substitute.For<IAuctionNotifier>();
+    private readonly IAuditService _auditService = Substitute.For<IAuditService>();
 
-    private Subasta CrearSubastaActiva(int vendedorId = 99, decimal precioBase = 1000m, decimal incremento = 100m)
+    private RegisterBidCommandHandler CrearHandler() =>
+        new(
+            _unitOfWork,
+            _auctionRepository,
+            _walletRepository,
+            _ledgerRepository,
+            _notifier,
+            _auditService);
+
+    private Subasta CrearSubastaActiva(
+        int vendedorId = 99,
+        decimal precioBase = 1000m,
+        decimal incremento = 100m,
+        DateTime? fechaFin = null)
     {
         return new Subasta(
             vendedorId: vendedorId,
@@ -27,7 +41,7 @@ public class RegisterBidCommandHandlerTests
             precioBase: precioBase,
             incrementoMinimo: incremento,
             fechaInicio: DateTime.UtcNow.AddHours(-1),
-            fechaFin: DateTime.UtcNow.AddHours(2)
+            fechaFin: fechaFin ?? DateTime.UtcNow.AddHours(2)
         );
     }
 
@@ -41,13 +55,7 @@ public class RegisterBidCommandHandlerTests
         _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
         _walletRepository.GetByUserIdAsync(10).Returns(billetera);
 
-        var handler = new RegisterBidCommandHandler(
-            _unitOfWork,
-            _auctionRepository,
-            _walletRepository,
-            _ledgerRepository,
-            _notifier);
-
+        var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 10, Monto: 1000m);
 
         // Act & Assert
@@ -58,6 +66,8 @@ public class RegisterBidCommandHandlerTests
 
         // Verificamos que NO se emitió ninguna notificación SignalR a los clientes
         await _notifier.DidNotReceive().NotificarNuevaPujaAsync(Arg.Any<PujaResponseDto>());
+        await _auditService.DidNotReceive().RegistrarEventoAsync(
+            Arg.Any<string>(), Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<object>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -71,14 +81,7 @@ public class RegisterBidCommandHandlerTests
         _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
         _walletRepository.GetByUserIdAsync(vendedorId).Returns(billetera);
 
-        var handler = new RegisterBidCommandHandler(
-            _unitOfWork,
-            _auctionRepository,
-            _walletRepository,
-            _ledgerRepository,
-            _notifier);
-
-        // El usuario 42 es el dueño de la subasta
+        var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: vendedorId, Monto: 1000m);
 
         // Act & Assert
@@ -98,14 +101,7 @@ public class RegisterBidCommandHandlerTests
         _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
         _walletRepository.GetByUserIdAsync(2).Returns(billetera);
 
-        var handler = new RegisterBidCommandHandler(
-            _unitOfWork,
-            _auctionRepository,
-            _walletRepository,
-            _ledgerRepository,
-            _notifier);
-
-        // Ofrecemos $500 cuando el mínimo requerido es $1000
+        var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 2, Monto: 500m);
 
         // Act & Assert
@@ -126,13 +122,7 @@ public class RegisterBidCommandHandlerTests
         _walletRepository.GetByUserIdAsync(2).Returns(billetera);
         _unitOfWork.SaveChangesAsync().Returns(1);
 
-        var handler = new RegisterBidCommandHandler(
-            _unitOfWork,
-            _auctionRepository,
-            _walletRepository,
-            _ledgerRepository,
-            _notifier);
-
+        var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 2, Monto: 1000m);
 
         // Act
@@ -142,11 +132,58 @@ public class RegisterBidCommandHandlerTests
         Assert.NotNull(resultado);
         Assert.Equal(1000m, resultado.Monto);
         Assert.Equal(2, resultado.UsuarioId);
+        Assert.False(resultado.TiempoExtendido);
 
         // Verificamos que se confirmó la transacción exactamente 1 vez
         await _unitOfWork.Received(1).SaveChangesAsync();
 
         // Verificamos que se notificó por SignalR a los clientes
         await _notifier.Received(1).NotificarNuevaPujaAsync(Arg.Is<PujaResponseDto>(p => p.Monto == 1000m && p.UsuarioId == 2));
+
+        // No se debió activar Anti-Sniping porque quedaban 2 horas
+        await _auditService.DidNotReceive().RegistrarEventoAsync(
+            "Subasta", subasta.Id, "ANTI_SNIPING_ACTIVADO", Arg.Any<int?>(), Arg.Any<object>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RegistrarPuja_ConAntiSniping_RegistraEventoDeAuditoria_Y_ExtiendeTiempo()
+    {
+        // Arrange: Subasta vence en 30 segundos (<= 60s activa Anti-Sniping)
+        var subasta = CrearSubastaActiva(
+            vendedorId: 1,
+            precioBase: 1000m,
+            incremento: 100m,
+            fechaFin: DateTime.UtcNow.AddSeconds(30));
+
+        var billetera = new Billetera(usuarioId: 2, saldoTotal: 5000m, saldoRetenido: 0m);
+
+        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
+        _walletRepository.GetByUserIdAsync(2).Returns(billetera);
+        _unitOfWork.SaveChangesAsync().Returns(1);
+
+        var handler = CrearHandler();
+        var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 2, Monto: 1000m);
+
+        // Act
+        var resultado = await handler.Handle(command);
+
+        // Assert
+        Assert.NotNull(resultado);
+        Assert.True(resultado.TiempoExtendido);
+
+        // Verificamos registro del evento de auditoría obligatorio
+        await _auditService.Received(1).RegistrarEventoAsync(
+            "Subasta",
+            subasta.Id,
+            "ANTI_SNIPING_ACTIVADO",
+            command.UsuarioId,
+            Arg.Any<object>(),
+            Arg.Any<CancellationToken>());
+
+        // Se confirmó el estado en BD
+        await _unitOfWork.Received(1).SaveChangesAsync();
+
+        // Se notificó la extensión a los clientes
+        await _notifier.Received(1).NotificarNuevaPujaAsync(Arg.Is<PujaResponseDto>(p => p.TiempoExtendido));
     }
 }

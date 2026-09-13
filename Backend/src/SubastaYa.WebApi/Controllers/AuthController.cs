@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.DTOs;
+using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auth.Commands;
 using SubastaYa.Application.UseCases.Auth.Handlers;
 using SubastaYa.Application.UseCases.Auth.Queries;
 using SubastaYa.Infrastructure.Data;
 using SubastaYa.WebApi.Models;
-using SubastaYa.WebApi.Services;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,13 +16,13 @@ namespace SubastaYa.WebApi.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly RegisterCommandHandler _registerHandler;
+    private readonly RegisterUserCommandHandler _registerHandler;
     private readonly LoginQueryHandler _loginHandler;
     private readonly IConfiguration _configuration;
     private readonly SubastaYaDbContext _context;
     private readonly IEmailSender _emailSender;
 
-    public AuthController(RegisterCommandHandler registerHandler, LoginQueryHandler loginHandler, IConfiguration configuration, SubastaYaDbContext context, IEmailSender emailSender)
+    public AuthController(RegisterUserCommandHandler registerHandler, LoginQueryHandler loginHandler, IConfiguration configuration, SubastaYaDbContext context, IEmailSender emailSender)
     {
         _registerHandler = registerHandler;
         _loginHandler = loginHandler;
@@ -68,9 +68,8 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        await _registerHandler.Handle(new RegisterCommand(dto.Nombre, dto.Email, dto.Password));
-        var user = await _context.Usuarios.FirstAsync(u => u.Email == dto.Email);
-        await SendVerificationEmailAsync(user, HttpContext.RequestAborted);
+        var origin = $"{Request.Scheme}://{Request.Host}";
+        await _registerHandler.Handle(new RegisterUserCommand(dto.Nombre, dto.Email, dto.Password, origin), HttpContext.RequestAborted);
         return Ok(new { mensaje = "Cuenta creada. Revisá tu correo para verificarla." });
     }
 

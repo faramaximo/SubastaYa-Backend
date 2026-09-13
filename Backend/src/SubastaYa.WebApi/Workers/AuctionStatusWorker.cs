@@ -33,6 +33,7 @@ namespace SubastaYa.WebApi.Workers
                     {
                         var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
                         var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>(); // 👈 Obtenemos el notificador del scope
+                        var auditService = scope.ServiceProvider.GetRequiredService<IAuditService>();
                         bool huboCambios = false;
 
                         // 1. ARRANCAR SUBASTAS
@@ -76,6 +77,23 @@ namespace SubastaYa.WebApi.Workers
                                 }
                                 _logger.LogInformation($"✅ Subasta {subasta.Id} FINALIZADA. Ganador: {pujaGanadora.CompradorId}");
 
+                                // Registro de auditoría: subasta finalizada con ganador
+                                await auditService.RegistrarEventoAsync(
+                                    entidad: "Subasta",
+                                    entidadId: subasta.Id,
+                                    accion: "SUBASTA_FINALIZADA",
+                                    usuarioId: pujaGanadora.CompradorId,
+                                    detalle: new
+                                    {
+                                        subastaId = subasta.Id,
+                                        ganadorId = pujaGanadora.CompradorId,
+                                        montoGanador = pujaGanadora.Monto,
+                                        vendedorId = subasta.VendedorId,
+                                        fechaFin = subasta.FechaFin,
+                                        estado = EstadoSubasta.Finalizada.ToString()
+                                    },
+                                    stoppingToken);
+
                                 // Usamos la variable notifier del scope
                                 await notifier.NotificarSubastaFinalizadaAsync(subasta.Id, pujaGanadora.CompradorId, pujaGanadora.Monto);
                             }
@@ -83,6 +101,22 @@ namespace SubastaYa.WebApi.Workers
                             {
                                 subasta.DeclararDesierta();
                                 _logger.LogInformation($"👻 Subasta {subasta.Id} declarada DESIERTA.");
+
+                                // Registro de auditoría: subasta desierta
+                                await auditService.RegistrarEventoAsync(
+                                    entidad: "Subasta",
+                                    entidadId: subasta.Id,
+                                    accion: "SUBASTA_DESIERTA",
+                                    usuarioId: null,
+                                    detalle: new
+                                    {
+                                        subastaId = subasta.Id,
+                                        vendedorId = subasta.VendedorId,
+                                        fechaFin = subasta.FechaFin,
+                                        estado = EstadoSubasta.Desierta.ToString(),
+                                        motivo = "No se recibieron ofertas válidas durante el período activo."
+                                    },
+                                    stoppingToken);
 
                                 // Usamos la variable notifier del scope
                                 await notifier.NotificarSubastaFinalizadaAsync(subasta.Id, null, 0);

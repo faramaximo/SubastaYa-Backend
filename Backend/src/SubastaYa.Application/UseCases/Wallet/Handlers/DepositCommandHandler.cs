@@ -1,5 +1,5 @@
-﻿using SubastaYa.Application.Interfaces;
-using SubastaYa.Application.UseCases.Wallet.Commands; // ← ¡Este using es el que te falta!
+using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.UseCases.Wallet.Commands;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using System;
@@ -8,14 +8,20 @@ using System.Threading.Tasks;
 public class DepositCommandHandler
 {
     private readonly IWalletRepository _billeteras;
-    private readonly ILedgerRepository _ledger; // Repositorio para TransaccionLedger
+    private readonly ILedgerRepository _ledger;
     private readonly IUnitOfWork _uow;
+    private readonly IAuditService _auditService;
 
-    public DepositCommandHandler(IWalletRepository billeteras, ILedgerRepository ledger, IUnitOfWork uow)
+    public DepositCommandHandler(
+        IWalletRepository billeteras,
+        ILedgerRepository ledger,
+        IUnitOfWork uow,
+        IAuditService auditService)
     {
         _billeteras = billeteras;
         _ledger = ledger;
         _uow = uow;
+        _auditService = auditService;
     }
 
     public async Task Handle(DepositCommand cmd)
@@ -24,13 +30,13 @@ public class DepositCommandHandler
 
         if (billetera == null)
         {
-            billetera = new Billetera(cmd.UsuarioId); // Usamos el nuevo constructor
+            billetera = new Billetera(cmd.UsuarioId);
             billetera.Depositar(cmd.Monto);
             await _billeteras.AgregarAsync(billetera);
         }
         else
         {
-            billetera.Depositar(cmd.Monto); // Usa la lógica rica del dominio
+            billetera.Depositar(cmd.Monto);
         }
 
         var transaccion = new TransaccionLedger
@@ -42,7 +48,25 @@ public class DepositCommandHandler
         };
         await _ledger.AgregarAsync(transaccion);
 
-        // Confirmamos la transacción completa (Atomicidad)[cite: 1]
+        // Registro de auditoría (preparación en el contexto de trabajo)
+        await _auditService.RegistrarEventoAsync(
+            entidad: "Billetera",
+            entidadId: billetera.Id,
+            accion: "DEPOSITO_SALDO",
+            usuarioId: cmd.UsuarioId,
+            detalle: new
+            {
+                billeteraId = billetera.Id,
+                usuarioId = cmd.UsuarioId,
+                monto = cmd.Monto,
+                saldoTotal = billetera.SaldoTotal,
+                saldoDisponible = billetera.SaldoDisponible,
+                tipo = TipoTransaccion.Deposito.ToString(),
+                fecha = DateTime.UtcNow
+            }
+        );
+
+        // Confirmamos la transacción completa (Atomicidad)
         await _uow.SaveChangesAsync();
     }
 }

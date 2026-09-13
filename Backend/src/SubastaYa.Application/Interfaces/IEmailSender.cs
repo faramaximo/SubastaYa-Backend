@@ -1,4 +1,4 @@
-namespace SubastaYa.WebApi.Services;
+namespace SubastaYa.Application.Interfaces;
 
 public interface IEmailSender
 {

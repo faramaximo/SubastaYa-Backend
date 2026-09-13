@@ -3,7 +3,6 @@ using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace SubastaYa.Application.UseCases.Bids.Commands;
 
@@ -13,20 +12,23 @@ public class RegisterBidCommandHandler
     private readonly IAuctionRepository _auctionRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly ILedgerRepository _ledgerRepository;
-    private readonly IAuctionNotifier _notifier; // 1. Nueva dependencia
+    private readonly IAuctionNotifier _notifier;
+    private readonly IAuditService _auditService;
 
     public RegisterBidCommandHandler(
         IUnitOfWork unitOfWork,
         IAuctionRepository auctionRepository,
         IWalletRepository walletRepository,
         ILedgerRepository ledgerRepository,
-        IAuctionNotifier notifier) // 2. Inyección
+        IAuctionNotifier notifier,
+        IAuditService auditService)
     {
         _unitOfWork = unitOfWork;
         _auctionRepository = auctionRepository;
         _walletRepository = walletRepository;
         _ledgerRepository = ledgerRepository;
         _notifier = notifier;
+        _auditService = auditService;
     }
 
     public async Task<PujaResponseDto> Handle(RegisterBidCommand command)
@@ -90,14 +92,31 @@ public class RegisterBidCommandHandler
         var nuevaPuja = subasta.Pujas.MaxBy(p => p.FechaPuja)
             ?? throw new InvalidOperationException("No se pudo registrar la puja.");
 
-        try
+        var antiSnipingActivado = subasta.FechaFin > fechaFinAntes;
+        if (antiSnipingActivado)
         {
-            await _unitOfWork.SaveChangesAsync();
+            await _auditService.RegistrarEventoAsync(
+                entidad: "Subasta",
+                entidadId: subasta.Id,
+                accion: "ANTI_SNIPING_ACTIVADO",
+                usuarioId: command.UsuarioId,
+                detalle: new
+                {
+                    subastaId = subasta.Id,
+                    usuarioId = command.UsuarioId,
+                    montoPuja = command.Monto,
+                    fechaFinAnterior = fechaFinAntes,
+                    nuevaFechaFin = subasta.FechaFin,
+                    segundosExtension = (subasta.FechaFin - fechaFinAntes).TotalSeconds,
+                    motivo = "Oferta recibida en los últimos 60 segundos de la subasta."
+                }
+            );
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            throw new ConcurrencyException("Alguien más realizó una puja al mismo tiempo. Actualizá la subasta y volvé a intentarlo.");
-        }
+
+        // Confirmamos de manera atómica (puja + billetera + ledger + auditoría si aplicó)
+        // La colisión de concurrencia optimista (DbUpdateConcurrencyException) es capturada
+        // globalmente por el ExceptionMiddleware para retornar HTTP 409 y registrar AuditoriaLog.
+        await _unitOfWork.SaveChangesAsync();
 
         var response = new PujaResponseDto(
             nuevaPuja.Id,
@@ -106,9 +125,9 @@ public class RegisterBidCommandHandler
             command.Monto,
             nuevaPuja.FechaPuja,
             subasta.FechaFin,
-            subasta.FechaFin > fechaFinAntes);
+            antiSnipingActivado);
 
-        // 3. Disparamos la notificación desde el Handler
+        // Notificación en tiempo real por SignalR
         await _notifier.NotificarNuevaPujaAsync(response);
 
         return response;
