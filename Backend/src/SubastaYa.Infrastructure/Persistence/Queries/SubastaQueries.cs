@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Enums;
@@ -56,7 +56,7 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<AuctionDto>> SearchAuctionsAsync(int? estado, int? categoriaId, decimal? precioMin, decimal? precioMax, string? busqueda, string orderBy)
+        public async Task<PagedResultDto<AuctionDto>> SearchAuctionsAsync(int? estado, int? categoriaId, decimal? precioMin, decimal? precioMax, string? busqueda, string orderBy, int? page = null, int? pageSize = null)
         {
             var query = _ctx.Subastas.AsNoTracking().AsQueryable();
 
@@ -97,8 +97,17 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
                 _ => query.OrderBy(s => s.FechaFin)
             };
 
-            // 3. PROYECCIÓN DIRECTA A DTO
-            return await query.Select(s => new AuctionDto
+            // 3. CONTEO TOTAL PARA PAGINACIÓN
+            var totalItems = await query.CountAsync();
+
+            // 4. PAGINACIÓN (si fue solicitada)
+            if (page.HasValue && pageSize.HasValue && page.Value > 0 && pageSize.Value > 0)
+            {
+                query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+            }
+
+            // 5. PROYECCIÓN DIRECTA A DTO
+            var items = await query.Select(s => new AuctionDto
             {
                 Id = s.Id,
                 Titulo = s.Titulo,
@@ -113,6 +122,11 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
                 FechaFin = s.FechaFin,
                 Estado = s.Estado
             }).ToListAsync();
+
+            int currentPage = page.GetValueOrDefault(1);
+            int effectivePageSize = pageSize.GetValueOrDefault(totalItems > 0 ? totalItems : 1);
+
+            return new PagedResultDto<AuctionDto>(items, totalItems, currentPage, effectivePageSize);
         }
 
     }

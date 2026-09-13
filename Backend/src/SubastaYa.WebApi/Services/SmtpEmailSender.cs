@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using SubastaYa.Application.Interfaces;
 
 namespace SubastaYa.WebApi.Services;
 
@@ -19,7 +20,7 @@ public sealed class SmtpEmailSender(IConfiguration configuration) : IEmailSender
         var rawPassword = configuration["Email:Password"];
 
         if (port is not (> 0 and <= 65535) || useSsl is null || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(rawPassword))
-            throw new InvalidOperationException("La configuración SMTP de la sección Email está incompleta o es inválida.");
+             throw new InvalidOperationException("La configuración SMTP de la sección Email está incompleta o es inválida.");
 
         using var message = new MailMessage(sender, recipient, subject, htmlBody) { IsBodyHtml = true };
         using var client = new SmtpClient(host, port.Value);

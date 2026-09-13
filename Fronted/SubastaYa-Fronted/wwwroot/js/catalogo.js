@@ -92,7 +92,8 @@ async function obtenerCatalogo() {
         const response = await fetch(url);
         if (!response.ok) throw new Error("Error al consultar el servidor");
         
-        const subastas = await response.json();
+        const data = await response.json();
+        const subastas = Array.isArray(data) ? data : (data.items || []);
         procesarYRenderizarSubastas(subastas);
     } catch (error) {
         console.error("Error de conexión:", error);

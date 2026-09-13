@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.UseCases.Wallet.Commands;
@@ -25,6 +26,10 @@ public class WalletController : ControllerBase
         _transactionsHandler = transactionsHandler;
     }
 
+    [HttpGet("balance")]
+    public async Task<IActionResult> GetBalanceCurrentUser() =>
+        await GetBalance(ObtenerUsuarioId());
+
     [HttpGet("balance/{usuarioId:int}")]
     public async Task<IActionResult> GetBalance(int usuarioId)
     {
@@ -36,10 +41,17 @@ public class WalletController : ControllerBase
     public async Task<IActionResult> GetTransactions(int usuarioId) =>
         Ok(await _transactionsHandler.Handle(new GetTransactionsQuery(usuarioId)));
 
+    [HttpPost("deposit")]
+    public async Task<IActionResult> DepositCurrentUser([FromBody] DepositRequestDto dto) =>
+        await Deposit(ObtenerUsuarioId(), dto);
+
     [HttpPost("deposit/{usuarioId:int}")]
     public async Task<IActionResult> Deposit(int usuarioId, [FromBody] DepositRequestDto dto)
     {
         await _depositHandler.Handle(new DepositCommand(usuarioId, dto.Monto));
         return Ok(new { message = "Depósito realizado correctamente." });
     }
+
+    private int ObtenerUsuarioId() =>
+        int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 }

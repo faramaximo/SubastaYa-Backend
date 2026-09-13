@@ -1,6 +1,3 @@
-namespace SubastaYa.WebApi.Services;
-
-public interface IEmailSender
-{
-    Task SendAsync(string recipient, string subject, string htmlBody, CancellationToken cancellationToken = default);
-}
+// Esta interfaz fue movida a SubastaYa.Application.Interfaces.IEmailSender.
+// Este archivo se mantiene vacío para evitar conflictos de compilación.
+// Cualquier referencia debe apuntar a SubastaYa.Application.Interfaces.IEmailSender.

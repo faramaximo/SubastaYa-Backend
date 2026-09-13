@@ -1,27 +1,26 @@
-﻿namespace SubastaYa.Application.UseCases.Auth.Handlers;
+namespace SubastaYa.Application.UseCases.Auth.Handlers;
 using SubastaYa.Application.UseCases.Auth.Queries;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Domain.Exceptions;
 using SubastaYa.Application.Interfaces;
-// Usings mínimos
 
 public class LoginQueryHandler
 {
     private readonly IUsuarioRepository _usuarios;
+    private readonly IJwtTokenService _jwt;
 
-    public LoginQueryHandler(IUsuarioRepository usuarios)
+    public LoginQueryHandler(IUsuarioRepository usuarios, IJwtTokenService jwt)
     {
         _usuarios = usuarios;
+        _jwt = jwt;
     }
 
-    public async Task<AuthUserDto> Handle(LoginQuery query)
+    public async Task<LoginResponseDto> Handle(LoginQuery query)
     {
         var usuario = await _usuarios.ObtenerPorEmailAsync(query.Email);
 
         if (usuario is null)
-        {
-            throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Email o contraseña incorrectos.");
-        }
+            throw new UnauthorizedException("Email o contraseña incorrectos.");
 
         bool passwordValida;
         try
@@ -35,11 +34,12 @@ public class LoginQueryHandler
         }
 
         if (!passwordValida)
-            throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Email o contraseña incorrectos.");
+            throw new UnauthorizedException("Email o contraseña incorrectos.");
 
         if (!usuario.EmailVerificado)
-            throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Verificá tu correo electrónico antes de ingresar.");
+            throw new UnauthorizedException("Verificá tu correo electrónico antes de ingresar.");
 
-        return new AuthUserDto(usuario.Id, usuario.Nombre, usuario.Email);
+        var token = _jwt.GenerarToken(usuario.Id, usuario.Nombre, usuario.Email);
+        return new LoginResponseDto(usuario.Id, usuario.Nombre, usuario.Email, token);
     }
 }

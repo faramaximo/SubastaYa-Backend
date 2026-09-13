@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SubastaYa.WebApi.Services;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,12 +66,17 @@ builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ILedgerRepository, LedgerRepository>();
 builder.Services.AddScoped<IWalletQueries, WalletQueries>();
 builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<SubastaYa.Application.Interfaces.IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>(); // ← NUEVA LÍNEA
 
 // 3. Registros de Aplicación (Auth, Subastas, Billetera y Pujas)
 builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginQueryHandler>();
+builder.Services.AddScoped<VerifyEmailCommandHandler>();
+builder.Services.AddScoped<ResendVerificationCommandHandler>();
+builder.Services.AddScoped<ForgotPasswordCommandHandler>();
+builder.Services.AddScoped<ResetPasswordCommandHandler>();
 builder.Services.AddScoped<GetMisPublicacionesQueryHandler>();
 builder.Services.AddScoped<GetMisPujasQueryHandler>();
 builder.Services.AddScoped<SearchAuctionsQueryHandler>();
@@ -87,7 +93,35 @@ builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>(
 builder.Services.AddSignalR();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "SubastaYa.WebApi",
+        Version = "v1",
+        Description = "API REST de SubastaYa para subastas en tiempo real y billetera virtual."
+    });
+
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese su token JWT (Swagger incluirá el prefijo Bearer automáticamente)."
+    };
+
+    c.AddSecurityDefinition("Bearer", securityScheme);
+
+    c.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 // Configuración de CORS incluyendo los puertos de desarrollo local
 builder.Services.AddCors(options => {
