@@ -105,7 +105,7 @@ public class AuthController : ControllerBase
             user.TokenRecuperacionHash = HashToken(token);
             user.TokenRecuperacionExpiraUtc = DateTime.UtcNow.AddMinutes(30);
             await _context.SaveChangesAsync();
-            var link = $"{Request.Scheme}://{Request.Host}/reset-password.html?token={Uri.EscapeDataString(token)}";
+            var link = $"{Request.Scheme}://{Request.Host}/pages/reset-password.html?token={Uri.EscapeDataString(token)}";
             await _emailSender.SendAsync(user.Email, "Restablecé tu contraseña", $"<p>Solicitaste restablecer tu contraseña.</p><p><a href=\"{link}\">Restablecer contraseña</a></p><p>Este enlace vence en 30 minutos.</p>", HttpContext.RequestAborted);
         }
         return Ok(new { mensaje = "Si el correo está registrado, recibirás instrucciones para restablecer la contraseña." });

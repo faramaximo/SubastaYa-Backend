@@ -11,6 +11,6 @@ document.getElementById("resetPasswordForm")?.addEventListener("submit", async (
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         message.textContent = data.mensaje; message.className = "success";
-        setTimeout(() => window.location.assign("/login.html"), 1500);
+        setTimeout(() => window.location.assign("/pages/login.html"), 1500);
     } catch (error) { message.textContent = error.message || "No pudimos actualizar la contraseña."; message.className = "error"; } finally { button.disabled = false; }
 });

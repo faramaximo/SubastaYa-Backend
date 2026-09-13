@@ -1,9 +1,9 @@
-﻿document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
     
     // 1. Verificamos que esté logueado
    const userId = sessionStorage.getItem("subastaya_user_id");
 if (!userId) {
-    window.location.href = "/login.html";
+    window.location.href = "/pages/login.html";
     return;
 }
 

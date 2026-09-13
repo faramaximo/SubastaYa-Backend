@@ -1,4 +1,4 @@
-﻿// Reemplaza los '0000' por el puerto HTTPS real de tu BACKEND
+// Reemplaza los '0000' por el puerto HTTPS real de tu BACKEND
 
 
 let hubConnection = null;
@@ -186,7 +186,7 @@ function renderizarTarjeta(subasta, contenedor) {
                             <div class="duracion-subasta mt-1" style="font-size: 0.75rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                         </div>
                     </div>
-                    <a href="/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
+                    <a href="/pages/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
                 </div>
             </div>
         </div>
@@ -253,7 +253,7 @@ function renderizarDestacada(subasta, contenedor) {
                         <div class="duracion-subasta mt-1" style="font-size: 0.85rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                     </div>
                 </div>
-               <a href="/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
+               <a href="/pages/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
             </div>
         </div>
     `;

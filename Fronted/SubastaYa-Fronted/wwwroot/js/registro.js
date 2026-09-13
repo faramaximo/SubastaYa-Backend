@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
     const formRegistro = document.getElementById("formRegistro");
     const msjBox = document.getElementById("registroMensaje");
     const btnSubmit = document.getElementById("btnSubmit");
@@ -45,7 +45,7 @@
 
             // Esperamos 2 segundos para que el usuario lea el cartel y lo mandamos a loguearse
             setTimeout(() => {
-                window.location.href = "/login.html";
+                window.location.href = "/pages/login.html";
             }, 2000);
             
         } catch (error) {
