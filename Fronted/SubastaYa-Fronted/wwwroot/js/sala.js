@@ -300,7 +300,7 @@ function parseApiUtcDate(value) {
 function calcularDiferenciaTiempo(fechaStr) {
     const date = parseApiUtcDate(fechaStr);
     if (!date) return 0;
-    return date.getTime() - Date.now();
+    return date.getTime() - obtenerHoraSincronizada();
 }
 
 function formatLocalDateTime(value) {
@@ -461,6 +461,28 @@ async function conectarSignalR(subastaId) {
                 if (extendido) {
                     mostrarNotificacionExtension();
                 }
+                await mostrarSala(currentSalaId);
+                actualizarTemporizador();
+            }
+        });
+
+        hubConnection.on("SubastaCerrada", async (data) => {
+            const id = data?.subastaId ?? data?.SubastaId;
+            if (String(currentSalaId) === String(id)) {
+                await mostrarSala(currentSalaId);
+                actualizarTemporizador();
+            }
+        });
+
+        hubConnection.on("SubastaDesierta", async (subastaId) => {
+            if (String(currentSalaId) === String(subastaId)) {
+                await mostrarSala(currentSalaId);
+                actualizarTemporizador();
+            }
+        });
+
+        hubConnection.on("SubastaIniciada", async (subastaId) => {
+            if (String(currentSalaId) === String(subastaId)) {
                 await mostrarSala(currentSalaId);
                 actualizarTemporizador();
             }

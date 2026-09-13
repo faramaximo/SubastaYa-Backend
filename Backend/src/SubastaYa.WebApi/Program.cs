@@ -66,6 +66,7 @@ builder.Services.AddScoped<ILedgerRepository, LedgerRepository>();
 builder.Services.AddScoped<IWalletQueries, WalletQueries>();
 builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>(); // ← NUEVA LÍNEA
 
 // 3. Registros de Aplicación (Auth, Subastas, Billetera y Pujas)
 builder.Services.AddScoped<RegisterCommandHandler>();

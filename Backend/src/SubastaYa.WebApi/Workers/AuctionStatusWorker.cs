@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using SubastaYa.Application.Interfaces;
+using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Infrastructure.Data;
 using SubastaYa.WebApi.Hubs; // Asegúrate de incluir el namespace de tu Hub
@@ -10,17 +12,13 @@ namespace SubastaYa.WebApi.Workers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<AuctionStatusWorker> _logger;
-        private readonly IHubContext<AuctionHub> _hubContext; // 1. Declarar el contexto del Hub
 
-        // 2. Inyectar IHubContext en el constructor
         public AuctionStatusWorker(
             IServiceProvider serviceProvider,
-            ILogger<AuctionStatusWorker> logger,
-            IHubContext<AuctionHub> hubContext)
+            ILogger<AuctionStatusWorker> logger)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
-            _hubContext = hubContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -34,9 +32,10 @@ namespace SubastaYa.WebApi.Workers
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
+                        var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>(); // 👈 Obtenemos el notificador del scope
                         bool huboCambios = false;
 
-                        // 1. ARRANCAR SUBASTAS: De Programada a Activa
+                        // 1. ARRANCAR SUBASTAS
                         var subastasParaActivar = await context.Subastas
                             .Where(s => s.Estado == EstadoSubasta.Programada && s.FechaInicio <= DateTime.UtcNow && s.FechaFin > DateTime.UtcNow)
                             .ToListAsync(stoppingToken);
@@ -46,14 +45,12 @@ namespace SubastaYa.WebApi.Workers
                             subasta.IniciarSubastaProgramada();
                             _logger.LogInformation($"🟢 Subasta {subasta.Id} ha comenzado. Estado cambiado a ACTIVA.");
 
-                            // Avisar a la sala por si alguien está esperando que inicie
-                            await _hubContext.Clients.Group($"subasta-{subasta.Id}")
-                                .SendAsync("SubastaIniciada", subasta.Id, cancellationToken: stoppingToken);
-
+                            // Usamos la abstracción
+                            await notifier.NotificarSubastaIniciadaAsync(subasta.Id);
                             huboCambios = true;
                         }
 
-                        // 2. CERRAR SUBASTAS VENCIDAS
+                        // 2. CERRAR SUBASTAS
                         var subastasVencidas = await context.Subastas
                             .Where(s => (s.Estado == EstadoSubasta.Activa || s.Estado == EstadoSubasta.Programada) && s.FechaFin <= DateTime.UtcNow)
                             .ToListAsync(stoppingToken);
@@ -79,33 +76,28 @@ namespace SubastaYa.WebApi.Workers
                                 }
                                 _logger.LogInformation($"✅ Subasta {subasta.Id} FINALIZADA. Ganador: {pujaGanadora.CompradorId}");
 
-                                // Avisar a los usuarios dentro de la sala con el prefijo correcto
-                                await _hubContext.Clients.Group($"subasta-{subasta.Id}").SendAsync("SubastaCerrada", new
-                                {
-                                    SubastaId = subasta.Id, // Añadido para que el JS sepa de cuál hablamos
-                                    GanadorId = pujaGanadora.CompradorId,
-                                    MontoFinal = pujaGanadora.Monto
-                                }, cancellationToken: stoppingToken);
+                                // Usamos la variable notifier del scope
+                                await notifier.NotificarSubastaFinalizadaAsync(subasta.Id, pujaGanadora.CompradorId, pujaGanadora.Monto);
                             }
                             else
                             {
                                 subasta.DeclararDesierta();
                                 _logger.LogInformation($"👻 Subasta {subasta.Id} declarada DESIERTA.");
 
-                                // Avisar que quedó desierta
-                                await _hubContext.Clients.Group($"subasta-{subasta.Id}")
-                                    .SendAsync("SubastaDesierta", subasta.Id, cancellationToken: stoppingToken);
+                                // Usamos la variable notifier del scope
+                                await notifier.NotificarSubastaFinalizadaAsync(subasta.Id, null, 0);
                             }
 
                             huboCambios = true;
                         }
 
+                        // 3. CONFIRMAR CAMBIOS Y REFRESCA CATÁLOGO
                         if (huboCambios)
                         {
                             await context.SaveChangesAsync(stoppingToken);
 
-                            // ¡CRUCIAL! Avisar a todos los conectados para que el catálogo general recargue sus tarjetas
-                            await _hubContext.Clients.All.SendAsync("SubastaActualizada", cancellationToken: stoppingToken);
+                            // Refrescamos de manera global
+                            await notifier.NotificarActualizacionCatalogoAsync();
                         }
                     }
                 }

@@ -13,21 +13,21 @@ public class RegisterBidCommandHandler
     private readonly IAuctionRepository _auctionRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly ILedgerRepository _ledgerRepository;
+    private readonly IAuctionNotifier _notifier; // 1. Nueva dependencia
 
     public RegisterBidCommandHandler(
         IUnitOfWork unitOfWork,
         IAuctionRepository auctionRepository,
         IWalletRepository walletRepository,
-        ILedgerRepository ledgerRepository)
+        ILedgerRepository ledgerRepository,
+        IAuctionNotifier notifier) // 2. Inyección
     {
         _unitOfWork = unitOfWork;
         _auctionRepository = auctionRepository;
         _walletRepository = walletRepository;
         _ledgerRepository = ledgerRepository;
+        _notifier = notifier;
     }
-
-
-    //Valida reglas de negocio
 
     public async Task<PujaResponseDto> Handle(RegisterBidCommand command)
     {
@@ -90,17 +90,16 @@ public class RegisterBidCommandHandler
         var nuevaPuja = subasta.Pujas.MaxBy(p => p.FechaPuja)
             ?? throw new InvalidOperationException("No se pudo registrar la puja.");
 
-        try 
-        { 
+        try
+        {
             await _unitOfWork.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
         {
             throw new ConcurrencyException("Alguien más realizó una puja al mismo tiempo. Actualizá la subasta y volvé a intentarlo.");
         }
-       
 
-        return new PujaResponseDto(
+        var response = new PujaResponseDto(
             nuevaPuja.Id,
             subasta.Id,
             command.UsuarioId,
@@ -108,5 +107,10 @@ public class RegisterBidCommandHandler
             nuevaPuja.FechaPuja,
             subasta.FechaFin,
             subasta.FechaFin > fechaFinAntes);
+
+        // 3. Disparamos la notificación desde el Handler
+        await _notifier.NotificarNuevaPujaAsync(response);
+
+        return response;
     }
 }

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.UseCases.Bids.Commands;
-using SubastaYa.WebApi.Hubs;
 
 namespace SubastaYa.WebApi.Controllers;
 
@@ -13,20 +11,15 @@ namespace SubastaYa.WebApi.Controllers;
 public class BidsController : ControllerBase
 {
     private readonly RegisterBidCommandHandler _registerBidHandler;
-    private readonly IHubContext<AuctionHub> _hubContext;
 
-    public BidsController(
-        RegisterBidCommandHandler registerBidHandler,
-        IHubContext<AuctionHub> hubContext)
+    public BidsController(RegisterBidCommandHandler registerBidHandler)
     {
         _registerBidHandler = registerBidHandler;
-        _hubContext = hubContext;
     }
 
     [HttpPost]
     public async Task<IActionResult> RegistrarPuja([FromBody] RegistrarPujaDto dto)
     {
-        // Resolver usuarioId: preferir el claim del token si está presente
         int? usuarioId = dto.UsuarioId;
         if (!usuarioId.HasValue)
         {
@@ -40,16 +33,6 @@ public class BidsController : ControllerBase
 
         var command = new RegisterBidCommand(dto.SubastaId, usuarioId.Value, dto.Monto);
         var resultado = await _registerBidHandler.Handle(command);
-
-        await _hubContext.Clients
-            .Group($"subasta-{dto.SubastaId}")
-            .SendAsync("NuevaPujaRegistrada", resultado);
-
-        // El catálogo es público: todas las pestañas deben reflejar una nueva oferta
-        // y, especialmente, una posible extensión anti-sniping sin requerir recarga.
-        await _hubContext.Clients
-            .All
-            .SendAsync("SubastaActualizada", resultado);
 
         return Ok(resultado);
     }
