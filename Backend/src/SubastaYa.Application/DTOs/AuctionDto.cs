@@ -21,6 +21,7 @@ public class AuctionDto
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
     public EstadoSubasta Estado { get; set; }
+    public DateTime HoraServidor { get; set; }
 
     // Lista de pujas simplificadas para evitar ciclos de serialización
     public List<PujaInfoDto> Pujas { get; set; } = new List<PujaInfoDto>();

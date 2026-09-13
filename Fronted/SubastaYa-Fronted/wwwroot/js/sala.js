@@ -3,7 +3,11 @@ let currentSalaId = null;
 let salaVersion = null;
 let lastFechaFinStr = null; // Para detectar si el tiempo aumentó
 let extensionTimer = null;  // Para controlar el desvanecimiento del mensaje
+let serverTimeOffset = 0; // Guarda la diferencia en milisegundos
 
+function obtenerHoraSincronizada() {
+    return Date.now() + serverTimeOffset;
+}
 // EXTRAER EL ID DEL USUARIO DESDE EL TOKEN (Para saber quién lidera)
 function getUserIdFromToken() {
     const token = localStorage.getItem('token');
@@ -43,6 +47,14 @@ async function mostrarSala(id) {
         const resp = await fetch(`${API_BASE_URL}/api/auctions/${id}`);
         if (!resp.ok) throw new Error('No se pudo cargar la subasta');
         const subasta = await resp.json();
+
+        const horaServidorStr = subasta.horaServidor || subasta.HoraServidor;
+        if (horaServidorStr) {
+            const msServidor = new Date(horaServidorStr.endsWith('Z') ? horaServidorStr : horaServidorStr + 'Z').getTime();
+            serverTimeOffset = msServidor - Date.now();
+        }
+
+
         salaVersion = resp.headers.get('ETag') || subasta.version || subasta.Version || null;
 
         const currentFechaFin = subasta.fechaFin || subasta.FechaFin;
@@ -421,7 +433,7 @@ function actualizarTemporizador() {
             if (dateInicio && dateFin) {
                 const msInicio = dateInicio.getTime();
                 const msFin = dateFin.getTime();
-                let porcentaje = ((Date.now() - msInicio) / (msFin - msInicio)) * 100;
+                let porcentaje = ((obtenerHoraSincronizada() - msInicio) / (msFin - msInicio)) * 100;
                 progressEl.style.width = `${Math.min(100, Math.max(0, porcentaje))}%`;
             }
         }

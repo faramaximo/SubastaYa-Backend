@@ -34,6 +34,7 @@ namespace SubastaYa.Application.UseCases.Auctions.Handlers
                 FechaInicio = subasta.FechaInicio,
                 FechaFin = subasta.FechaFin,
                 Estado = subasta.Estado,
+                HoraServidor = DateTime.UtcNow,
                 Pujas = subasta.Pujas.Select(p => new PujaInfoDto(p.Id, p.CompradorId, p.Monto, p.FechaPuja)).ToList()
             };
 
