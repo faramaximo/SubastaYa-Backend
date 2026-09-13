@@ -126,43 +126,8 @@
           </div>
         </section>
 
-        <!-- Sala oculta por defecto -->
-        <section id="sala-view" class="auction-room py-4 d-none" aria-live="polite">
-          <a href="#" id="btnVolverCatalogo" class="btn btn-link mb-3">← Volver al catálogo</a>
-          <div class="auction-room__card">
-            <div class="row g-0">
-              <div class="col-lg-6">
-                <div class="auction-room__image"><img id="salaImagen" src="" alt="Imagen de la subasta"></div>
-              </div>
-              <div class="col-lg-6 p-4 p-md-5">
-                <p class="text-muted mb-2">Sala de pujas en vivo</p>
-                <h2 id="salaTitulo" class="fw-bold mb-3"></h2>
-                <p id="salaDescripcion" class="text-muted mb-4"></p>
-                <div class="mb-4">
-                  <span class="text-muted d-block small">Oferta actual</span>
-                  <strong id="salaOferta" class="auction-room__current">$0</strong>
-                  <span id="salaMinima" class="auction-room__minimum d-block mt-1">Calculando puja mínima…</span>
-                </div>
-                <form id="formPuja" class="auction-room__bid" novalidate>
-                  <label for="montoPuja" class="fw-bold mb-2">Tu puja</label>
-                  <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input id="montoPuja" type="number" class="form-control" min="0" step="0.01" inputmode="decimal" required>
-                    <button id="btnOfertar" class="btn btn-primary" type="button">Ofertar</button>
-                  </div>
-                  <p id="pujaAyuda" class="text-muted small mb-0 mt-2"></p>
-                </form>
-              </div>
-            </div>
-            <div class="border-top p-4 p-md-5" style="border-color: var(--borde) !important;">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h5 fw-bold mb-0">Pujas recientes</h3>
-                <span id="contadorPujas" class="text-muted small"></span>
-              </div>
-              <ul id="historialPujas" class="auction-room__history list-group list-group-flush"></ul>
-            </div>
-          </div>
-        </section>
+     
+       
       </main>
     </div>
 

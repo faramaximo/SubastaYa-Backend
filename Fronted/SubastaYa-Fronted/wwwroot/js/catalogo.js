@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     obtenerCatalogo();
     conectarSignalR().catch(error => console.error("No se pudo conectar al tiempo real:", error));
     iniciarTemporizadorGlobal();
+    iniciarTemporizadorSalaDetallada();
     // Asegurar vista por defecto: catálogo visible, sala oculta
     const salaEl = document.getElementById('sala-view');
     const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
@@ -40,6 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // POR QUÉ: la sesión puede cambiar sin recargar el catálogo.
     if (window.updateAuthHeader) window.updateAuthHeader();
 });
+
+
+
 
 // ==========================================
 // 1. CONFIGURACIÓN DE EVENTOS (Blindada)
@@ -182,7 +186,7 @@ function renderizarTarjeta(subasta, contenedor) {
                             <div class="duracion-subasta mt-1" style="font-size: 0.75rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                         </div>
                     </div>
-                    <a href="#" data-id="${subasta.id}" class="btn btn-primary w-100 mt-3 ver-sala">Ver Sala</a>
+                    <a href="/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
                 </div>
             </div>
         </div>
@@ -190,189 +194,12 @@ function renderizarTarjeta(subasta, contenedor) {
 }
 
 // Delegación de eventos: abrir sala al hacer click en cualquier botón .ver-sala
-document.addEventListener('click', function (e) {
-    const btn = e.target.closest('.ver-sala');
-    if (!btn) return;
-    e.preventDefault();
-    const id = btn.getAttribute('data-id');
-    if (id) mostrarSala(id);
-});
+
 
 // Botón volver al catálogo: obtiene el estado actualizado antes de mostrarlo.
-document.addEventListener('click', async function (e) {
-    const volver = e.target.closest('#btnVolverCatalogo');
-    if (!volver) return;
-    e.preventDefault();
-    const salaEl = document.getElementById('sala-view');
-    const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
-    if (salaEl) {
-        // limpiar contenedores de sala básicos
-        const img = salaEl.querySelector('#salaImagen'); if (img) img.src = '';
-        const titulo = salaEl.querySelector('#salaTitulo'); if (titulo) titulo.innerText = '';
-        const desc = salaEl.querySelector('#salaDescripcion'); if (desc) desc.innerText = '';
-        const oferta = salaEl.querySelector('#salaOferta'); if (oferta) oferta.innerText = '$0';
-        const historial = salaEl.querySelector('#historialPujas'); if (historial) historial.innerHTML = '';
-        const monto = salaEl.querySelector('#montoPuja'); if (monto) monto.value = '';
-        salaEl.classList.add('d-none');
-    }
-    currentSalaId = null;
-    salaVersion = null;
-    if (salaRefreshId) clearInterval(salaRefreshId);
-    salaRefreshId = null;
-    await obtenerCatalogo();
-    if (catalogEl) catalogEl.classList.remove('d-none');
-});
 
-async function mostrarSala(id) {
-    try {
-        const resp = await fetch(`${API_BASE_URL}/api/auctions/${id}`);
-        if (!resp.ok) throw new Error('No se pudo cargar la subasta');
-        const subasta = await resp.json();
-        salaVersion = resp.headers.get('ETag') || subasta.version || subasta.Version || null;
 
-        // Rellenar datos en la vista de sala
-        const salaView = document.getElementById('sala-view');
-        const catalogView = document.getElementById('catalog-view');
 
-        document.getElementById('salaTitulo').innerText = subasta.titulo || '';
-        document.getElementById('salaDescripcion').innerText = subasta.descripcion || '';
-        const salaImagen = document.getElementById('salaImagen');
-        salaImagen.src = subasta.urlImagen || '';
-        salaImagen.alt = `Imagen de ${subasta.titulo || 'la subasta'}`;
-        salaImagen.onerror = () => {
-            salaImagen.removeAttribute('src');
-            salaImagen.alt = 'Imagen no disponible';
-        };
-        const pujas = Array.isArray(subasta.pujas || subasta.Pujas) ? (subasta.pujas || subasta.Pujas) : [];
-        const oferta = Math.max(Number(subasta.ofertaMasAlta || subasta.OfertaMasAlta || 0), Number(subasta.precioBase || subasta.PrecioBase || 0), ...pujas.map(p => Number(p.monto ?? p.Monto ?? p.MontoOferta ?? 0)));
-        const incremento = Math.max(Number(subasta.incrementoMinimo || subasta.IncrementoMinimo || 0), 0.01);
-        const pujaMinima = oferta + incremento;
-        document.getElementById('salaOferta').innerText = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(oferta);
-        document.getElementById('salaMinima').innerText = `Puja mínima: $${pujaMinima.toFixed(2)} (incremento: $${incremento.toFixed(2)})`;
-
-        // Historial de pujas
-        const historial = document.getElementById('historialPujas');
-        historial.innerHTML = '';
-        if (Array.isArray(pujas) && pujas.length > 0) {
-            // Orden descendente por fecha
-            pujas.sort((a, b) => {
-                const dateA = parseApiUtcDate(a.fechaPuja || a.FechaPuja || a.fecha)?.getTime() || 0;
-                const dateB = parseApiUtcDate(b.fechaPuja || b.FechaPuja || b.fecha)?.getTime() || 0;
-                return dateB - dateA;
-            });
-            pujas.forEach((p, idx) => {
-                const comprador = p.compradorNombre || p.comprador || p.usuarioNombre || p.usuario || `Usuario #${p.compradorId || p.compradorID || p.usuarioId || '—'}`;
-                const montoVal = p.monto ?? p.Monto ?? p.MontoOferta ?? 0;
-                const fecha = formatLocalDateTime(p.fechaPuja || p.FechaPuja || p.fecha);
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                const detalle = document.createElement('div');
-                const nombre = document.createElement('div');
-                nombre.className = 'fw-semibold';
-                nombre.textContent = comprador;
-                const momento = document.createElement('div');
-                momento.className = 'sala-meta auction-room__timestamp';
-                momento.textContent = fecha;
-                const monto = document.createElement('span');
-                monto.className = 'auction-room__amount';
-                monto.textContent = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(montoVal);
-                detalle.append(nombre, momento);
-                li.append(detalle, monto);
-                historial.appendChild(li);
-            });
-        } else {
-            historial.innerHTML = '<li class="list-group-item text-muted">Aún no hay pujas</li>';
-        }
-
-        // Mostrar sala y ocultar catálogo
-        const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
-        if (catalogEl) catalogEl.classList.add('d-none');
-        if (salaView) salaView.classList.remove('d-none');
-        currentSalaId = id;
-        unirseASubasta(id).catch(error => console.error("No se pudo unir a la sala en tiempo real:", error));
-        document.getElementById('contadorPujas').textContent = `${pujas.length} ${pujas.length === 1 ? 'puja' : 'pujas'}`;
-
-        // Preparar evento ofertar (simple, depende de autenticación)
-        const btnOfertar = document.getElementById('btnOfertar');
-        const inputMonto = document.getElementById('montoPuja');
-        inputMonto.min = pujaMinima.toFixed(2);
-        inputMonto.placeholder = pujaMinima.toFixed(2);
-        if (document.activeElement !== inputMonto) inputMonto.value = pujaMinima.toFixed(2);
-        document.getElementById('pujaAyuda').textContent = `Ingresá un monto igual o superior a $${pujaMinima.toFixed(2)}.`;
-        btnOfertar.onclick = async () => {
-            const monto = parseFloat(inputMonto.value);
-            if (!monto || monto < pujaMinima) return showToast('warning', `La puja mínima actual es $${pujaMinima.toFixed(2)}.`);
-
-            // Requerimos token JWT en localStorage
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showToast('warning', 'Debés iniciar sesión para poder pujar.');
-                window.location.href = '/login.html';
-                return;
-            }
-
-            try {
-                const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-                if (salaVersion) headers['If-Match'] = salaVersion;
-                const body = { subastaId: parseInt(id), monto };
-
-                btnOfertar.disabled = true;
-                const r = await fetch(`${API_BASE_URL}/api/bids`, { method: 'POST', headers, body: JSON.stringify(body) });
-                if (r.status === 409 || r.status === 412) {
-                    await mostrarSala(id);
-                    showToast('warning', 'La oferta cambió mientras pujabas. Revisá el nuevo mínimo.');
-                    return;
-                }
-                if (!r.ok) {
-                    const json = await r.json().catch(() => null);
-                    const text = json?.error || json?.message || await r.text();
-                    throw new Error(text || 'Error al realizar la puja');
-                }
-
-                // La API devuelve NuevaFechaFin (camelCase en JSON), no fechaFin.
-                const resultado = await r.json();
-
-                showToast('success', '¡Puja realizada con éxito!');
-
-                // 2. LA MAGIA: Actualizamos el reloj del catálogo en segundo plano sin recargar
-                const nuevaFechaFin = resultado?.nuevaFechaFin || resultado?.NuevaFechaFin;
-                if (nuevaFechaFin) {
-                    const btnSala = document.querySelector(`.ver-sala[data-id="${id}"]`);
-                    if (btnSala) {
-                        const card = btnSala.closest('.auction-card, .featured-card');
-                        if (card) {
-                            const timer = card.querySelector('.live-timer');
-                            if (timer) {
-                                // Esto le inyecta los 2 minutos extra al reloj al instante
-                                timer.setAttribute('data-fin', nuevaFechaFin);
-                            }
-                        }
-                    }
-                }
-
-                // Refrescar los datos visuales de la sala
-                mostrarSala(id);
-            } catch (err) {
-                console.error(err);
-                showToast('danger', 'No se pudo enviar la puja: ' + (err.message || err));
-            } finally {
-                btnOfertar.disabled = false;
-            }
-        };
-
-        if (salaRefreshId) clearInterval(salaRefreshId);
-        salaRefreshId = setInterval(() => {
-            if (currentSalaId === id && !document.getElementById('sala-view').classList.contains('d-none')) mostrarSala(id);
-        }, 8000);
-
-        // Nota: lógica SignalR removida en esta restauración. Si se desea reactivar,
-        // puede agregarse aquí una conexión simple a /hubs/auction y listeners para actualizar la sala en tiempo real.
-
-    } catch (error) {
-        console.error('Error al cargar sala:', error);
-        showToast('danger', 'No se pudo cargar la sala. Ver consola.');
-    }
-}
 
 // Toast helper (Bootstrap)
 function showToast(type, message, title) {
@@ -426,7 +253,7 @@ function renderizarDestacada(subasta, contenedor) {
                         <div class="duracion-subasta mt-1" style="font-size: 0.85rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                     </div>
                 </div>
-                <a href="#" data-id="${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold ver-sala">Ofertar Ahora</a>
+               <a href="/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
             </div>
         </div>
     `;

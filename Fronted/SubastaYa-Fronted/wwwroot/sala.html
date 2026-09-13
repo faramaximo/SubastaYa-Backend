@@ -1,39 +1,219 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sala de Subasta - SubastaYa</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <title>Sala de Pujas - SubastaYa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/catalogo.css" />
-  </head>
-  <body>
-    <div class="container py-5">
-      <a href="/index.html" class="btn btn-link mb-3">← Volver al catálogo</a>
-      <h1 class="mb-3">Sala de Subasta</h1>
-      <div id="salaInfo" class="mb-4">Cargando información de la sala...</div>
+    <link rel="stylesheet" href="/css/billetera.css" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-principal);
+            color: var(--text-principal);
+        }
 
-      <!-- Contenedor básico donde la lógica de sala puede inicializarse -->
-      <div id="salaContainer">
-        <!-- Aquí se conectará SignalR y se mostrará el tablero de la subasta -->
-      </div>
+        .auction-room {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .auction-room__card {
+            background: var(--bg-contenedor);
+            border: 1px solid var(--borde);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .auction-room__current {
+            color: var(--accent-color);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .auction-room__minimum {
+            color: var(--text-secundario);
+            font-size: .9rem;
+        }
+
+        .auction-room__history {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+            .auction-room__history .list-group-item {
+                background: transparent;
+                border-color: var(--borde);
+                color: var(--text-principal);
+            }
+
+        .auction-room__amount {
+            color: var(--accent-color);
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- CABECERA -->
+        <header class="market-header">
+            <div class="market-header__top">
+                <a class="market-logo" href="/index.html">SubastaYa</a>
+                <nav class="market-nav">
+                    <a href="/index.html">Explorar</a>
+                    <a href="/crear-subasta.html">Crear subasta</a>
+                    <a href="/billetera.html">Billetera</a>
+                    <a href="/panel.html">Mis actividades</a>
+                </nav>
+                <div class="header-controls">
+                    <button id="themeToggle" class="theme-toggle" type="button">
+                        <span class="theme-toggle__icon" aria-hidden="true"></span>
+                        <span class="theme-toggle__label">Oscuro</span>
+                    </button>
+                    <div class="auth-actions"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO DE LA SALA -->
+        <main class="main-content py-4">
+            <section class="auction-room" aria-live="polite">
+                <a href="/index.html" class="btn btn-link mb-4 text-decoration-none text-muted">← Volver al catálogo</a>
+
+                <!-- DIVISIÓN EN COLUMNAS SUELTAS -->
+                <div class="row g-4 align-items-start">
+
+                    <!-- ========================================== -->
+                    <!-- 1. COLUMNA IZQUIERDA: IMAGEN + DESCRIPCIÓN -->
+                    <!-- ========================================== -->
+                    <div class="col-12 col-lg-6 d-flex flex-column gap-3">
+
+                        <!-- La Imagen -->
+                        <div class="w-100 shadow-sm bg-white" style="border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 0.85; border: 1px solid var(--borde);">
+                            <img id="salaImagen" src="" alt="Imagen de la subasta" style="object-fit: contain; width: 100%; height: 100%; padding: 1rem;">
+                        </div>
+
+                        <!-- La Descripción (Movida abajo de la imagen) -->
+                        <div class="px-2 mt-2">
+                            <p id="salaDescripcion" class="text-muted mb-0" style="font-size: 1rem; line-height: 1.6; word-wrap: break-word;"></p>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- 2. COLUMNA DERECHA (ULTRA COMPACTA)        -->
+                    <!-- ========================================== -->
+                    <div class="col-12 col-lg-6 d-flex flex-column gap-2">
+
+                        <!-- EL CONTADOR (Súper delgado) -->
+                        <div class="card border border-light-subtle shadow-sm bg-white w-100 mb-0" style="border-radius: 8px;">
+                            <div class="card-header bg-transparent border-bottom-0 text-end text-muted pb-0 pt-2 pe-3" style="font-size: 0.65rem;">
+                                <span id="fechaFinTexto">Calculando...</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="sala-detailed-timer" class="d-flex justify-content-between text-center align-items-center py-1 px-2" data-inicio="" data-fin="">
+                                    <div class="d-flex flex-column flex-fill">
+                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-days">00</span>
+                                        <span id="label-days" class="text-uppercase text-muted" style="font-size: 0.55rem; letter-spacing: 1px; margin-top: 4px;">Días</span>
+                                    </div>
+                                    <div style="width: 1px; height: 20px; background-color: #dee2e6;"></div>
+                                    <div class="d-flex flex-column flex-fill">
+                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-hours">00</span>
+                                        <span id="label-hours" class="text-uppercase text-muted" style="font-size: 0.55rem; letter-spacing: 1px; margin-top: 4px;">Horas</span>
+                                    </div>
+                                    <div style="width: 1px; height: 20px; background-color: #dee2e6;"></div>
+                                    <div class="d-flex flex-column flex-fill">
+                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-minutes">00</span>
+                                        <span id="label-minutes" class="text-uppercase text-muted" style="font-size: 0.55rem; letter-spacing: 1px; margin-top: 4px;">Minutos</span>
+                                    </div>
+                                    <div style="width: 1px; height: 20px; background-color: #dee2e6;"></div>
+                                    <div class="d-flex flex-column flex-fill">
+                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-seconds">00</span>
+                                        <span id="label-seconds" class="text-uppercase text-muted" style="font-size: 0.55rem; letter-spacing: 1px; margin-top: 4px;">Segundos</span>
+                                    </div>
+                                </div>
+                                <div style="height: 3px; background-color: #e9ecef; width: 100%; border-bottom-left-radius: inherit; border-bottom-right-radius: inherit; overflow: hidden;">
+                                    <div id="timer-progress" style="height: 100%; background-color: #0d6efd; width: 0%; transition: width 1s linear;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="alertaUltimoMinuto" class="alert alert-danger d-none mb-0 py-2 text-center fw-semibold" role="alert">
+                            ¡Último minuto! Las pujas pueden extender la subasta.
+                        </div>
+
+                        <!-- LA CAJA BLANCA (Márgenes y padding mínimos) -->
+                        <div class="p-3 shadow-sm bg-white w-100" style="border-radius: 8px; border: 1px solid var(--borde);">
+
+                            <!-- Cabecera de estado -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div id="salaEstadoDistintivo" class="d-inline-block px-2 py-1 fw-bold rounded-1" style="font-size: 0.6rem; letter-spacing: 0.5px;">
+                                    Cargando...
+                                </div>
+                                
+                            </div>
+
+                            <h2 id="salaTitulo" class="fw-bold mb-2" style="font-size: 1.4rem; letter-spacing: -0.5px; line-height: 1.2;">Cargando...</h2>
+
+                            <!-- Oferta actual -->
+                            <div class="mb-2">
+                                <span class="text-muted d-block text-uppercase fw-semibold mb-0" style="font-size: 0.65rem; letter-spacing: 1px;">Oferta actual</span>
+                                <strong id="salaOferta" class="auction-room__current text-primary" style="font-size: 2rem; line-height: 1.1;">$0</strong>
+                            </div>
+
+                            <!-- Agrupamos Líder y Mínima en una línea con un borde divisor -->
+                            <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom border-light-subtle">
+                                <div id="liderInfo" class="text-dark fw-semibold" style="font-size: 0.8rem;">Líder: <em>...</em></div>
+                                <div id="salaMinima" class="text-muted text-end" style="font-size: 0.75rem;">Mínima...</div>
+                            </div>
+
+                            <!-- CAJA DE PUJA (Integrada, sin fondo gigante) -->
+                            <div class="mt-2">
+                                <!-- AVISO PERSONAL (Ultra compacto) -->
+                                <div id="estadoPersonalPuja" class="d-none mb-2 py-1 px-2 rounded text-center" style="border: 1px solid transparent; font-size: 0.8rem;"></div>
+
+                                <!-- AVISO DE EXTENSIÓN ANTI-SNIPING -->
+                                <div id="alertaExtensionTiempo" class="d-none mb-2 py-2 px-2 rounded text-center border border-danger bg-danger bg-opacity-10 text-danger" style="transition: opacity 0.5s ease-in-out; opacity: 0;" role="alert">
+                                    <div class="fw-bold" style="font-size: 0.85rem;">🔴 Subasta extendida +2:00</div>
+                                    <div style="font-size: 0.75rem;">Una nueva puja extendió el tiempo.</div>
+                                </div>
+
+                                <form id="formPuja" novalidate>
+                                    <label for="montoPuja" class="fw-bold mb-1" style="font-size: 0.8rem;">Tu puja</label>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <span class="input-group-text bg-white border-end-0 fw-bold text-muted">$</span>
+                                        <input id="montoPuja" type="number" class="form-control border-start-0 ps-0 fw-semibold bg-white" min="0" step="0.01" inputmode="decimal" required style="box-shadow: none; font-size: 1rem; border-left: none; height: 36px;">
+                                    </div>
+                                    <button id="btnOfertar" class="btn btn-primary btn-sm w-100 fw-bold" type="button" style="border-radius: 6px; height: 38px;">Ofertar</button>
+                                    <p id="pujaAyuda" class="text-muted mb-0 mt-1" style="font-size: 0.65rem;"></p>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 3. HISTORIAL DE PUJAS SUELTO ABAJO -->
+                <div class="mt-5 pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h5 fw-bold mb-0">Pujas recientes</h3>
+                        <span id="contadorPujas" class="text-muted small"></span>
+                    </div>
+                    <ul id="historialPujas" class="auction-room__history list-group list-group-flush bg-transparent"></ul>
+                </div>
+
+            </section>
+        </main>
     </div>
 
+    <div id="toastContainer" style="position:fixed;right:20px;bottom:20px;z-index:2000"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@7.0.5/dist/browser/signalr.min.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/auth.js"></script>
-    <script>
-      // Extraer id de la querystring y mostrarla
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
-      const salaInfo = document.getElementById('salaInfo');
-      if (!id) {
-        salaInfo.innerText = 'No se especificó el id de la subasta.';
-      } else {
-        salaInfo.innerText = `Subasta id: ${id}`;
-        // Aquí se podría inicializar la conexión SignalR con /hubs/auction y unirse a la sala
-        // Ejemplo (si se añade sala.js posteriormente):
-        // import('/js/sala.js').then(m => m.initSala(id));
-      }
-    </script>
-  </body>
+    <script src="/js/sala.js?v=3"></script>
+</body>
 </html>
