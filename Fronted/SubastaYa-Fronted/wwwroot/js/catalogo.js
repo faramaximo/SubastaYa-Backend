@@ -1,6 +1,3 @@
-// Reemplaza los '0000' por el puerto HTTPS real de tu BACKEND
-
-
 let hubConnection = null;
 let hubConnectionStartPromise = null;
 let currentSalaId = null;
@@ -41,9 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // POR QUÉ: la sesión puede cambiar sin recargar el catálogo.
     if (window.updateAuthHeader) window.updateAuthHeader();
 });
-
-
-
 
 // ==========================================
 // 1. CONFIGURACIÓN DE EVENTOS (Blindada)

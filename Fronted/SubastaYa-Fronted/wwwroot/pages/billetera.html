@@ -58,12 +58,12 @@
 									</div>
 									<button type="submit" class="btn-primary">Ingresar Dinero</button>
 								</form>
-								<div id="deposit-message" style="margin-top: 12px; font-size: 0.875rem;"></div>
+								<div id="deposit-message" class="deposit-message"></div>
 							</div>
 
 							<div class="wallet-panel">
 								<h4 class="fw-bold mb-3">Historial de Transacciones (Ledger)</h4>
-								<div style="overflow-x: auto;">
+								<div class="table-responsive">
 									<table class="ledger-table">
 										<thead>
 											<tr>
@@ -75,7 +75,7 @@
 										</thead>
 										<tbody id="ledger-table-body">
 											<tr>
-												<td colspan="4" style="text-align: center; color: #a1a5b7;">Cargando historial...</td>
+												<td colspan="4" class="text-center text-muted">Cargando historial...</td>
 											</tr>
 										</tbody>
 									</table>
@@ -85,6 +85,9 @@
 					</div>
 				</section>
 			</main>
+			<footer class="market-footer">
+				<p>© 2026 SubastaYa · Plataforma de Subastas en Tiempo Real</p>
+			</footer>
 		</div>
 
 		<!-- Scripts JS al final del body -->

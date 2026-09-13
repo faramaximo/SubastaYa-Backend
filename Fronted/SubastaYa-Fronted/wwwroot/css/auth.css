@@ -1,0 +1,108 @@
+/* ==========================================================================
+   AUTENTICACIÓN (LOGIN Y REGISTRO) - ESTILOS ESPECÍFICOS
+   ========================================================================== */
+
+body {
+    background-color: #0f111a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    padding: 20px;
+}
+
+.login-card {
+    background-color: #16192b;
+    border: 1px solid #2a2f4c;
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.form-label-custom {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    background-color: #1e2238;
+    border: 1px solid #2a2f4c;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.form-control:focus {
+    border-color: #6c5ce7;
+    box-shadow: none;
+    background-color: #1e2238;
+    color: white;
+}
+
+.form-control::placeholder {
+    color: #626a8a;
+}
+
+.auth-alert {
+    font-size: 0.85rem;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #6c5ce7 0%, #8e7dff 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: bold;
+    width: 100%;
+    border: none;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+}
+
+.auth-link-secondary {
+    color: #a29bfe;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: color 0.2s;
+}
+
+.auth-link-secondary:hover {
+    color: #ffffff;
+}
+
+.auth-card-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #2a2f4c;
+    font-size: 0.9rem;
+}
+
+.auth-guest-link {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-weight: 700;
+    display: inline-block;
+    margin-top: 0.25rem;
+    transition: color 0.2s;
+}
+
+.auth-guest-link:hover {
+    color: #ffffff;
+}

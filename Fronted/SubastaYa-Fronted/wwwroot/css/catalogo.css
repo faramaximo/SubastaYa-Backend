@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --sidebar-width: 260px;
     --bg-sidebar: #0b0c10;
     --bg-main: #0f111a;
@@ -752,3 +752,27 @@ body[data-theme="light"] [style*="color: #ffffff"] {
 .review p { grid-column: 1 / -1; margin: 0; color: var(--text-secundario); }
 .review__rating { color: var(--accent-color); font-weight: 700; }
 @media (max-width: 767px) { .profile-grid { grid-template-columns: 1fr; } .reviews-card__heading { flex-direction: column; } }
+
+/* ==========================================================================
+   PIE DE PÁGINA GLOBAL (FOOTER)
+   ========================================================================== */
+.market-footer {
+    margin-top: auto;
+    padding: 30px 20px;
+    border-top: 1px solid var(--borde);
+    text-align: center;
+    color: var(--text-secundario);
+    font-size: 0.85rem;
+}
+
+.market-footer p {
+    margin: 0;
+}
+
+.toast-container-fixed {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 2000;
+}
+

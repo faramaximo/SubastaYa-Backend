@@ -1,0 +1,61 @@
+/* ==========================================================================
+   PANEL DE ACTIVIDADES - ESTILOS ESPECÍFICOS
+   ========================================================================== */
+
+.panel-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+}
+
+.nav-tabs {
+    border-bottom: 2px solid var(--border-color);
+    border-radius: 0;
+}
+
+.nav-tabs .nav-link {
+    color: var(--text-muted);
+    font-weight: 600;
+    border: none;
+    padding: 15px 25px;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--text-principal);
+    border-bottom: 3px solid var(--border-color);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--accent-color);
+    border-bottom: 3px solid var(--accent-color);
+    background: transparent;
+}
+
+.panel-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.panel-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.badge-estado {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}

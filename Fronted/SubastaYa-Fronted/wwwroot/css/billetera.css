@@ -1,4 +1,4 @@
-﻿
+
     /* ==========================================
    MÓDULO BILLETERA VIRTUAL Y LEDGER
    ========================================== */
@@ -160,5 +160,10 @@
     .badge-liberacion {
         background: rgba(0, 158, 247, 0.15);
         color: #009ef7;
-    
+    }
+
+    .deposit-message {
+        margin-top: 12px;
+        font-size: 0.875rem;
+    }
 }

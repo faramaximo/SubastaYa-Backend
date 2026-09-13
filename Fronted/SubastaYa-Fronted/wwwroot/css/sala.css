@@ -1,0 +1,220 @@
+/* ==========================================================================
+   SALA DE SUBASTAS - ESTILOS ESPECÍFICOS
+   ========================================================================== */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-principal);
+    color: var(--text-principal);
+}
+
+.auction-room {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.auction-room__card {
+    background: var(--bg-contenedor);
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.auction-room__image {
+    aspect-ratio: 1 / .78;
+    background: var(--bg-principal);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.auction-room__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.auction-room__current {
+    color: var(--accent-color);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+}
+
+.auction-room__minimum {
+    color: var(--text-secundario);
+    font-size: .9rem;
+}
+
+.auction-room__bid {
+    background: var(--bg-principal);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.auction-room__history {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.auction-room__history .list-group-item {
+    background: transparent;
+    border-color: var(--borde);
+    color: var(--text-principal);
+}
+
+.auction-room__bidder {
+    font-weight: 700;
+}
+
+.auction-room__timestamp {
+    color: var(--text-secundario);
+    font-size: .8rem;
+}
+
+.auction-room__amount {
+    color: var(--accent-color);
+    font-weight: 800;
+}
+
+/* ==========================================================================
+   COMPONENTES MODULARES DE SALA
+   ========================================================================== */
+
+.sala-img-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1 / 0.85;
+    border: 1px solid var(--borde);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.sala-img-element {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+}
+
+.sala-desc-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.sala-timer-card {
+    border-radius: 8px;
+}
+
+.sala-timer-header {
+    font-size: 0.65rem;
+}
+
+.sala-timer-label {
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+.sala-timer-separator {
+    width: 1px;
+    height: 20px;
+    background-color: #dee2e6;
+}
+
+.sala-timer-progress-track {
+    height: 3px;
+    background-color: #e9ecef;
+    width: 100%;
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+    overflow: hidden;
+}
+
+.sala-timer-progress-bar {
+    height: 100%;
+    background-color: #0d6efd;
+    width: 0%;
+    transition: width 1s linear;
+}
+
+.sala-info-card {
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+}
+
+.sala-badge-status {
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+}
+
+.sala-title {
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+
+.sala-current-price-label {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+}
+
+.sala-current-price {
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.sala-leader-info {
+    font-size: 0.8rem;
+}
+
+.sala-minimum-info {
+    font-size: 0.75rem;
+}
+
+.sala-personal-status {
+    border: 1px solid transparent;
+    font-size: 0.8rem;
+}
+
+.sala-anti-sniping-alert {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+}
+
+.sala-anti-sniping-title {
+    font-size: 0.85rem;
+}
+
+.sala-anti-sniping-sub {
+    font-size: 0.75rem;
+}
+
+.sala-bid-label {
+    font-size: 0.8rem;
+}
+
+.sala-bid-input {
+    box-shadow: none !important;
+    font-size: 1rem;
+    border-left: none !important;
+    height: 36px;
+}
+
+.sala-btn-bid {
+    border-radius: 6px;
+    height: 38px;
+}
+
+.sala-bid-hint {
+    font-size: 0.65rem;
+}
+
+.toast-container-fixed {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 2000;
+}
