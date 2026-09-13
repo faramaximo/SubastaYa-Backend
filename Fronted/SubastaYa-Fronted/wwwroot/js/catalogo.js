@@ -176,8 +176,6 @@ function renderizarTarjeta(subasta, contenedor) {
                             <span class="info-value live-timer" data-inicio="${inicioStr}" data-fin="${finStr}">
                                 --:--:--
                             </span>
-                            <!-- Contenedor oculto para la duración. -->
-                            <div class="duracion-subasta mt-1" style="font-size: 0.75rem; color: #a29bfe; display: none; font-weight: 600;"></div>
                         </div>
                     </div>
                     <a href="/pages/sala.html?id=${subasta.id}" class="btn btn-primary w-100 mt-3">Ver Sala</a>
@@ -369,14 +367,16 @@ function iniciarTemporizadorGlobal() {
                     : "info-value live-timer text-info fw-bold";
                 timer.innerText = formatearFechaRestante(faltanParaInicio);
 
-                // Lógica para calcular y mostrar la duración total de la subasta.
-                if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) {
+                // Lógica para calcular y mostrar la duración total de la subasta (solo en tarjeta destacada).
+                if (duracionDiv && duracionDiv.classList.contains('duracion-subasta') && timer.classList.contains('f-timer')) {
                     const msInicio = new Date(inicioStr.endsWith('Z') ? inicioStr : inicioStr + 'Z').getTime();
                     const msFin = new Date(finStr.endsWith('Z') ? finStr : finStr + 'Z').getTime();
                     const duracionTotal = msFin - msInicio;
                     
                     duracionDiv.innerText = `Durará: ${formatearFechaRestante(duracionTotal)}`;
                     duracionDiv.style.display = "block"; // Lo hacemos visible
+                } else if (duracionDiv) {
+                    duracionDiv.style.display = "none";
                 }
             } 
             else if (faltanParaFin > 0) {

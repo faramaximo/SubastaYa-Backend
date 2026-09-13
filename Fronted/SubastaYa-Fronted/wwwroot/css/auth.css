@@ -1,10 +1,271 @@
 /* ==========================================================================
-   AUTENTICACIÓN (LOGIN Y REGISTRO) - ESTILOS ESPECÍFICOS
+   AUTENTICACIÓN (LOGIN Y REGISTRO) - VENTANA FLOTANTE Y PÁGINAS DEDICADAS
    ========================================================================== */
 
-body {
-    background-color: #0f111a;
-    color: #ffffff;
+/* --------------------------------------------------------------------------
+   1. VENTANA FLOTANTE (MODAL OVERLAY Y TARJETA BLANCA)
+   -------------------------------------------------------------------------- */
+
+/* Fondo oscuro translúcido con desenfoque para ver la página detrás */
+.auth-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.auth-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Tarjeta flotante en color blanco con sombras elegantes */
+.auth-modal-card {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-radius: 24px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    position: relative;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-modal-overlay.active .auth-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+/* Botón cerrar modal (✕) */
+.auth-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.15s;
+    padding: 0;
+}
+
+.auth-modal-close:hover {
+    background: #e5e7eb;
+    color: #111827;
+    transform: scale(1.05);
+}
+
+.auth-modal-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #111827 !important;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.auth-modal-subtitle {
+    font-size: 0.92rem;
+    color: #6b7280 !important;
+    margin: 0;
+}
+
+/* Selector de pestañas (Iniciar Sesión / Crear Cuenta) */
+.auth-tabs {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 12px;
+    padding: 4px;
+    margin: 20px 0 22px;
+    gap: 4px;
+}
+
+.auth-tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-tab-btn:hover {
+    color: #111827;
+}
+
+.auth-tab-btn.active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   2. CAMPOS DE ENTRADA Y FORMULARIOS
+   -------------------------------------------------------------------------- */
+
+.form-label-custom {
+    font-size: 0.85rem;
+    color: #374151 !important;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.auth-input,
+.login-card .form-control {
+    background-color: #f9fafb !important;
+    border: 1.5px solid #e5e7eb !important;
+    color: #111827 !important;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    width: 100%;
+}
+
+.auth-input:focus,
+.login-card .form-control:focus {
+    background-color: #ffffff !important;
+    border-color: #4f46e5 !important;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12) !important;
+    color: #111827 !important;
+    outline: none;
+}
+
+.auth-input::placeholder,
+.login-card .form-control::placeholder {
+    color: #9ca3af !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. BOTONES Y ACCIONES
+   -------------------------------------------------------------------------- */
+
+.btn-auth-primary,
+.btn-login {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    color: #ffffff !important;
+    padding: 13px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-auth-primary:hover,
+.btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    color: #ffffff !important;
+}
+
+.btn-auth-primary:disabled,
+.btn-login:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Enlaces y botones de navegación rápida */
+.auth-link-secondary {
+    color: #4f46e5;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.auth-link-secondary:hover {
+    color: #3730a3;
+    text-decoration: underline;
+}
+
+.auth-link-btn {
+    background: transparent;
+    border: none;
+    color: #4f46e5;
+    padding: 0;
+    font-size: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.auth-link-btn:hover {
+    color: #3730a3;
+    text-decoration: underline;
+}
+
+.auth-card-footer {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+    font-size: 0.88rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.auth-alert {
+    font-size: 0.88rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+/* Reset para botones en la barra de navegación */
+button.auth-link {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+button.auth-button {
+    border: none;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   4. COMPATIBILIDAD PARA PÁGINAS DEDICADAS (FALLBACK EN BLANCO)
+   -------------------------------------------------------------------------- */
+
+body.auth-page {
+    background-color: #f3f4f6;
+    color: #111827;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -15,94 +276,26 @@ body {
 }
 
 .login-card {
-    background-color: #16192b;
-    border: 1px solid #2a2f4c;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 20px;
     padding: 40px;
     width: 100%;
-    max-width: 450px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.form-label-custom {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.form-control {
-    background-color: #1e2238;
-    border: 1px solid #2a2f4c;
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-}
-
-.form-control:focus {
-    border-color: #6c5ce7;
-    box-shadow: none;
-    background-color: #1e2238;
-    color: white;
-}
-
-.form-control::placeholder {
-    color: #626a8a;
-}
-
-.auth-alert {
-    font-size: 0.85rem;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.btn-login {
-    background: linear-gradient(135deg, #6c5ce7 0%, #8e7dff 100%);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    font-weight: bold;
-    width: 100%;
-    border: none;
-    margin-top: 10px;
-    transition: all 0.3s;
-}
-
-.btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
-}
-
-.auth-link-secondary {
-    color: #a29bfe;
-    font-size: 0.9rem;
-    text-decoration: none;
-    display: inline-block;
-    transition: color 0.2s;
-}
-
-.auth-link-secondary:hover {
-    color: #ffffff;
-}
-
-.auth-card-footer {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #2a2f4c;
-    font-size: 0.9rem;
+    max-width: 440px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    color: #111827;
 }
 
 .auth-guest-link {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: #6b7280;
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 600;
     display: inline-block;
-    margin-top: 0.25rem;
+    margin-top: 0.35rem;
     transition: color 0.2s;
 }
 
 .auth-guest-link:hover {
-    color: #ffffff;
+    color: #111827;
 }

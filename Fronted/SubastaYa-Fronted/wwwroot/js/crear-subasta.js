@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
 
     // ==========================================
     // PREVISUALIZACIÓN EN VIVO DE LA IMAGEN
@@ -26,7 +26,7 @@
 
     const form = document.getElementById("formCrearSubasta");
     const alerta = document.getElementById("alertaFormulario");
-    const btnSubmit = document.getElementById("btnSubmit");
+    const btnSubmit = document.getElementById("btnPublicar") || document.getElementById("btnSubmit");
     const fechaInicio = document.getElementById("fechaInicio");
     const horaInicio = document.getElementById("horaInicio");
     const fechaFin = document.getElementById("fechaFin");
@@ -124,13 +124,19 @@
         }
         // Fin de las validaciones temporales.
 
+        const vendedorId = parseInt(sessionStorage.getItem("subastaya_user_id"));
+        if (!vendedorId || isNaN(vendedorId)) {
+            mostrarAlerta("Error: Debés iniciar sesión para publicar una subasta.", "danger");
+            return;
+        }
+
         // 3. Armar el Data Transfer Object (DTO)
         const nuevaSubasta = {
             titulo: titulo,
             descripcion: descripcion,
             urlImagen: urlImagen,
             categoriaId: categoriaId,
-            vendedorId: parseInt(sessionStorage.getItem("subastaya_user_id")),
+            vendedorId: vendedorId,
             precioBase: precioBase,
             incrementoMinimo: incrementoMinimo,
             fechaInicio: inicio.toISOString(), 
@@ -139,30 +145,50 @@
 
         // 4. Enviar a la API (Capa de Red)
         try {
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "Publicando...";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "Publicando...";
+            }
+
+            const token = localStorage.getItem("token");
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
 
             const response = await fetch(`${API_BASE_URL}/api/auctions`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(nuevaSubasta)
             });
 
-            if (!response.ok) throw new Error("Ocurrió un error al intentar publicar la subasta en el servidor.");
+            if (!response.ok) {
+                let errorMsg = "Ocurrió un error al intentar publicar la subasta en el servidor.";
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.error || errData.mensaje || errData.title || errorMsg;
+                } catch (_) {}
+                throw new Error(errorMsg);
+            }
 
-            mostrarAlerta("¡Subasta publicada con éxito! Ya está disponible en el catálogo.", "success");
+            const data = await response.json().catch(() => ({}));
+            mostrarAlerta("¡Subasta publicada con éxito! Redirigiendo...", "success");
             form.reset(); 
-            const nextStart = roundToQuarterHour(new Date(Date.now() + 15 * 60 * 1000));
-            setSchedule(nextStart, new Date(nextStart.getTime() + 60 * 60 * 1000));
             previewImagen.classList.add("d-none");
+
+            setTimeout(() => {
+                if (data?.id) {
+                    window.location.href = `/pages/sala.html?id=${data.id}`;
+                } else {
+                    window.location.href = "/index.html";
+                }
+            }, 1200);
             
         } catch (error) {
             mostrarAlerta(error.message, "danger");
         } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Publicar Subasta";
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Publicar Subasta Ahora";
+            }
         }
     });
 

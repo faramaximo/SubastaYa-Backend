@@ -6,7 +6,11 @@
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
-    color: #ffffff;
+    color: var(--text-main);
+}
+
+.panel-subtitle {
+    color: var(--text-muted);
 }
 
 .nav-tabs {
@@ -51,6 +55,8 @@
     height: 120px;
     border-radius: 12px;
     object-fit: cover;
+    background-color: var(--border-color);
+    flex-shrink: 0;
 }
 
 .badge-estado {
@@ -58,4 +64,25 @@
     border-radius: 8px;
     font-weight: bold;
     font-size: 0.8rem;
+}
+
+.panel-empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 1rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+}
+
+@media (max-width: 768px) {
+    .panel-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .panel-img {
+        width: 100%;
+        height: 180px;
+    }
 }

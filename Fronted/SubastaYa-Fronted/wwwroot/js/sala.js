@@ -225,7 +225,11 @@ document.getElementById('btnOfertar').onclick = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
         showToast('warning', 'Debés iniciar sesión para poder pujar.');
-        setTimeout(() => window.location.href = '/pages/login.html', 1500);
+        if (window.openAuthModal) {
+            window.openAuthModal('login');
+        } else {
+            setTimeout(() => window.location.href = '/pages/login.html', 1500);
+        }
         return;
     }
 

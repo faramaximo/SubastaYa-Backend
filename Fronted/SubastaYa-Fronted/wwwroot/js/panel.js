@@ -20,7 +20,7 @@ if (!userId) {
             const pujas = await response.json();
 
             if (pujas.length === 0) {
-                contenedorCompras.innerHTML = `<div class="text-center text-white-50 py-5 mt-4" style="background: var(--bg-card); border-radius: 15px;">No tenés participación en ninguna subasta.</div>`;
+                contenedorCompras.innerHTML = `<div class="panel-empty-state">No tenés participación en ninguna subasta.</div>`;
                 return;
             }
 
@@ -40,16 +40,24 @@ if (!userId) {
 
                 contenedorCompras.innerHTML += `
                     <div class="panel-card">
-                        <img src="${p.urlImagen}" class="panel-img" alt="Producto">
+                        <img src="${p.urlImagen}" class="panel-img" alt="${p.titulo}">
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h4 class="fw-bold m-0">${p.titulo}</h4>
                                 <span class="badge-estado ${badgeColor}">${badgeTexto}</span>
                             </div>
-                            <!-- Contraste para texto secundario y principal. -->
-                            <div class="row mt-3 text-white-50" style="font-size: 0.9rem;">
-                                <div class="col-4"><strong class="text-white">Tu puja más alta:</strong><br>$${p.miMaximaPuja}</div>
-                                <div class="col-4"><strong class="text-white">Oferta actual:</strong><br>$${p.ofertaGanadora}</div>
+                            <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mt-3">
+                                <div class="d-flex gap-4">
+                                    <div>
+                                        <span class="info-label">Tu puja más alta</span>
+                                        <span class="info-value fs-5">$${p.miMaximaPuja}</span>
+                                    </div>
+                                    <div>
+                                        <span class="info-label">Oferta actual</span>
+                                        <span class="info-value fs-5">$${p.ofertaGanadora}</span>
+                                    </div>
+                                </div>
+                                <a href="/pages/sala.html?id=${p.id}" class="btn btn-primary btn-sm px-4 py-2 fw-semibold text-nowrap">Ver Sala</a>
                             </div>
                         </div>
                     </div>
@@ -70,7 +78,7 @@ if (!userId) {
             const ventas = await response.json();
 
             if (ventas.length === 0) {
-                contenedorVentas.innerHTML = `<div class="text-center text-white-50 py-5 mt-4" style="background: var(--bg-card); border-radius: 15px;">Todavía no publicaste ningún artículo.</div>`;
+                contenedorVentas.innerHTML = `<div class="panel-empty-state">Todavía no publicaste ningún artículo.</div>`;
                 return;
             }
 
@@ -92,17 +100,28 @@ if (!userId) {
 
                 contenedorVentas.innerHTML += `
                     <div class="panel-card">
-                        <img src="${v.urlImagen}" class="panel-img" alt="Producto">
+                        <img src="${v.urlImagen}" class="panel-img" alt="${v.titulo}">
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h4 class="fw-bold m-0">${v.titulo}</h4>
                                 <span class="badge-estado ${badgeColor}">${badgeTexto}</span>
                             </div>
-                            <!-- Contraste para texto secundario y principal. -->
-                            <div class="row mt-3 text-white-50" style="font-size: 0.9rem;">
-                                <div class="col-4"><strong class="text-white">Precio Base:</strong><br>$${v.precioBase}</div>
-                                <div class="col-4"><strong class="text-white">Oferta Más Alta:</strong><br>$${v.ofertaMasAlta}</div>
-                                <div class="col-4"><strong class="text-white">Total de Pujas:</strong><br>${v.cantidadPujas}</div>
+                            <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mt-3">
+                                <div class="d-flex gap-4 flex-wrap">
+                                    <div>
+                                        <span class="info-label">Precio Base</span>
+                                        <span class="info-value fs-5">$${v.precioBase}</span>
+                                    </div>
+                                    <div>
+                                        <span class="info-label">Oferta Más Alta</span>
+                                        <span class="info-value fs-5">$${v.ofertaMasAlta}</span>
+                                    </div>
+                                    <div>
+                                        <span class="info-label">Total de Pujas</span>
+                                        <span class="info-value fs-5">${v.cantidadPujas}</span>
+                                    </div>
+                                </div>
+                                <a href="/pages/sala.html?id=${v.id}" class="btn btn-primary btn-sm px-4 py-2 fw-semibold text-nowrap">Ver Sala</a>
                             </div>
                         </div>
                     </div>
