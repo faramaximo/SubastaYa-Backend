@@ -9,13 +9,18 @@ if (!userId) {
 
     const contenedorCompras = document.getElementById("contenedorCompras");
     const contenedorVentas = document.getElementById("contenedorVentas");
+    const token = localStorage.getItem("token");
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    };
 
     // ==========================================
     // CARGAR MIS COMPRAS / PUJAS
     // ==========================================
     async function cargarCompras() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/bids`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/bids`, { headers });
             if (!response.ok) throw new Error("Error al cargar las pujas");
             const pujas = await response.json();
 
@@ -73,7 +78,7 @@ if (!userId) {
     // ==========================================
     async function cargarVentas() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/auctions`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/auctions`, { headers });
             if (!response.ok) throw new Error("Error al cargar las publicaciones");
             const ventas = await response.json();
 
