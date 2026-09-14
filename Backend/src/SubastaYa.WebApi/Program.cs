@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auctions.Handlers;
+using SubastaYa.Application.UseCases.Auctions.Commands;
 using SubastaYa.Application.UseCases.Bids.Commands;
 using SubastaYa.Application.UseCases.Auth.Handlers;
 using SubastaYa.Application.UseCases.Usuarios.Handlers;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SubastaYa.Infrastructure.Services;
+using SubastaYa.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +69,7 @@ builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
 builder.Services.AddScoped<IWalletQueries, WalletQueries>();
 builder.Services.AddScoped<ISubastaQueries, SubastaQueries>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>(); // ← NUEVA LÍNEA
 
@@ -74,11 +77,16 @@ builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>(); // ← N
 builder.Services.AddScoped<RegisterUserCommandHandler>();
 builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginQueryHandler>();
+builder.Services.AddScoped<ForgotPasswordCommandHandler>();
+builder.Services.AddScoped<ResetPasswordCommandHandler>();
+builder.Services.AddScoped<VerifyEmailCommandHandler>();
+builder.Services.AddScoped<ResendEmailVerificationCommandHandler>();
 builder.Services.AddScoped<GetMisPublicacionesQueryHandler>();
 builder.Services.AddScoped<GetMisPujasQueryHandler>();
 builder.Services.AddScoped<SearchAuctionsQueryHandler>();
 builder.Services.AddScoped<GetAuctionByIdQueryHandler>();
 builder.Services.AddScoped<CreateAuctionCommandHandler>();
+builder.Services.AddScoped<FinalizeAuctionCommandHandler>();
 builder.Services.AddScoped<RegisterBidCommandHandler>();
 
 builder.Services.AddScoped<DepositCommandHandler>();

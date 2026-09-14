@@ -7,7 +7,7 @@ document.getElementById("resetPasswordForm")?.addEventListener("submit", async (
     if (!token) { message.textContent = "El enlace de recuperación es inválido."; message.className = "error"; return; }
     const button = event.currentTarget.querySelector("button"); button.disabled = true;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password }) });
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/password-resets/confirm`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password }) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         message.textContent = data.mensaje; message.className = "success";

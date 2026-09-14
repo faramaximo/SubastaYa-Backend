@@ -19,7 +19,6 @@ namespace SubastaYa.Domain.Entities
         public EstadoSubasta Estado { get; private set; }
 
 
-        [Timestamp] // <-- Falta esta etiqueta vital
         public byte[] Version { get; private set; } = Array.Empty<byte>(); // EF Core usará esto para la concurrencia
 
         // Navegación
@@ -31,7 +30,12 @@ namespace SubastaYa.Domain.Entities
         public IReadOnlyCollection<Puja> Pujas => _pujas.AsReadOnly();
 
         // 3. Constructor sin parámetros requerido por EF Core (privado/protegido)
-        protected Subasta() { }
+        protected Subasta()
+        {
+            Titulo = string.Empty;
+            Descripcion = string.Empty;
+            UrlImagen = string.Empty;
+        }
 
         // 4. Constructor de negocio: asegura que la entidad nace en un estado válido
         public Subasta(int vendedorId, int categoriaId, string titulo, string descripcion, string urlImagen, decimal precioBase, decimal incrementoMinimo, DateTime fechaInicio, DateTime fechaFin)

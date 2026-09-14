@@ -1,4 +1,4 @@
-﻿using SubastaYa.Domain.Exceptions;
+using SubastaYa.Domain.Exceptions;
 
 public class Billetera
 {
@@ -7,6 +7,7 @@ public class Billetera
     public decimal SaldoTotal { get; private set; }
     public decimal SaldoRetenido { get; private set; }
     public decimal SaldoDisponible => SaldoTotal - SaldoRetenido;
+
     public Guid Version { get; private set; }
 
     // Constructor vacío requerido por Entity Framework

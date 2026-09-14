@@ -1,10 +1,29 @@
-﻿// wallet.js - Lógica pura de comunicación con el Backend de la Billetera
 // wallet.js - Lógica pura de comunicación con el Backend de la Billetera
-const WALLET_API = `${API_BASE_URL}/api/v1/Wallet`;
 
-// Buscamos el ID numérico directamente en la sesión
-const userIdLogueado = sessionStorage.getItem('subastaya_user_id');
-const CURRENT_USER_ID = userIdLogueado ? parseInt(userIdLogueado) : 1;// El 1 queda como fallback de seguridad
+function getAuthData() {
+    const token = localStorage.getItem('token');
+    if (!token) return { token: null, userId: null };
+
+    let userId = sessionStorage.getItem('subastaya_user_id');
+    if (!userId) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+                || payload.nameid
+                || payload.sub
+                || payload.id
+                || payload.UserId
+                || null;
+        } catch (e) {
+            userId = null;
+        }
+    }
+    return { token, userId };
+}
+
+function getWalletApiUrl() {
+    return `${API_BASE_URL}/api/v1/wallet`;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const depositForm = document.getElementById('deposit-form');
@@ -19,16 +38,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Cargar saldos e historial al iniciar
 async function loadWalletData() {
+    const { token, userId } = getAuthData();
+    if (!token || !userId) {
+        console.warn('Usuario no autenticado para ver la billetera.');
+        return;
+    }
+
     await Promise.all([
         fetchWalletBalance(),
         fetchWalletTransactions()
     ]);
 }
 
-// Obtener Saldos desde la Web API (.NET 9)
+// Obtener Saldos desde la Web API: GET /api/v1/users/${usuarioId}/wallet
 async function fetchWalletBalance() {
     try {
-        const response = await fetch(`${WALLET_API}/balance/${CURRENT_USER_ID}`);
+        const { token } = getAuthData();
+        const response = await fetch(getWalletApiUrl(), {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Error al consultar saldo');
 
         const data = await response.json();
@@ -45,10 +75,15 @@ async function fetchWalletBalance() {
     }
 }
 
-// Obtener Transacciones del Ledger
+// Obtener Transacciones del Ledger: GET /api/v1/users/${usuarioId}/wallet/transactions
 async function fetchWalletTransactions() {
     try {
-        const response = await fetch(`${WALLET_API}/transactions/${CURRENT_USER_ID}`);
+        const { token } = getAuthData();
+        const response = await fetch(`${getWalletApiUrl()}/transactions`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Error al consultar historial');
 
         const transactions = await response.json();
@@ -72,7 +107,7 @@ async function fetchWalletTransactions() {
     }
 }
 
-// Procesar el depósito en la API
+// Procesar el depósito en la API: POST /api/v1/users/${usuarioId}/wallet/deposits
 async function handleDepositSubmit(e) {
     e.preventDefault();
     const amountInput = document.getElementById('deposit-amount');
@@ -89,10 +124,12 @@ async function handleDepositSubmit(e) {
     msgDiv.style.color = '#a1a5b7';
 
     try {
-        const response = await fetch(`${WALLET_API}/deposit/${CURRENT_USER_ID}`, {
+        const { token } = getAuthData();
+        const response = await fetch(`${getWalletApiUrl()}/deposits`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({ monto: montoNum })
         });

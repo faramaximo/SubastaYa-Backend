@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using SubastaYa.Application.DTOs;
 using SubastaYa.Application.UseCases.Auctions.Commands;
 using SubastaYa.Application.UseCases.Auctions.Handlers;
 using SubastaYa.Application.UseCases.Auctions.Queries;
@@ -45,9 +48,22 @@ public class AuctionsController : ControllerBase
         return subasta is null ? NotFound() : Ok(subasta);
     }
 
+    [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionCommand command)
+    public async Task<IActionResult> CreateAuction([FromBody] CreateAuctionDto dto)
     {
+        var vendedorId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new CreateAuctionCommand(
+            vendedorId,
+            dto.CategoriaId,
+            dto.Titulo,
+            dto.Descripcion,
+            dto.UrlImagen,
+            dto.PrecioBase,
+            dto.IncrementoMinimo,
+            dto.FechaInicio,
+            dto.FechaFin
+        );
         var subastaId = await _createHandler.Handle(command);
         return CreatedAtAction(nameof(GetAuctionById), new { id = subastaId }, new { id = subastaId });
     }

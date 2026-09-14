@@ -186,7 +186,7 @@
                 btnSubmitLogin.textContent = "Verificando...";
 
                 const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
-                const response = await fetch(`${base}/api/auth/login`, {
+                const response = await fetch(`${base}/api/v1/auth/tokens`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
@@ -242,7 +242,7 @@
                 btnSubmitRegister.textContent = "Creando cuenta...";
 
                 const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
-                const response = await fetch(`${base}/api/auth/register`, {
+                const response = await fetch(`${base}/api/v1/users`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ nombre, email, password })

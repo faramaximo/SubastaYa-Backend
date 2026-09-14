@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
     const formLogin = document.getElementById("formLogin");
     const errorBox = document.getElementById("loginError");
     const btnSubmit = document.getElementById("btnSubmit");
@@ -10,26 +10,23 @@
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
-    try {
+        try {
             btnSubmit.disabled = true;
             btnSubmit.innerText = "Verificando...";
 
-            // 1. AQUI ESTÁ LA MAGIA: Le agregamos la variable API_BASE_URL
-            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/tokens`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
 
-            // 2. Manejo seguro de errores
+            // Manejo seguro de errores
             if (!response.ok) {
-                // Intentamos leer el JSON, pero si falla (ej. error 404 o 405), no rompemos todo
                 let errorMessage = "Ocurrió un error en el servidor.";
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorData.mensaje || errorMessage;
                 } catch (e) {
-                    // Si no era JSON, nos quedamos con el mensaje genérico
                     console.error("El servidor devolvió un error sin formato JSON");
                 }
                 throw new Error(errorMessage);

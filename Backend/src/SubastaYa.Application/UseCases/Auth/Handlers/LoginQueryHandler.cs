@@ -8,13 +8,15 @@ using SubastaYa.Application.Interfaces;
 public class LoginQueryHandler
 {
     private readonly IUsuarioRepository _usuarios;
+    private readonly ITokenService _tokenService;
 
-    public LoginQueryHandler(IUsuarioRepository usuarios)
+    public LoginQueryHandler(IUsuarioRepository usuarios, ITokenService tokenService)
     {
         _usuarios = usuarios;
+        _tokenService = tokenService;
     }
 
-    public async Task<AuthUserDto> Handle(LoginQuery query)
+    public async Task<LoginResponseDto> Handle(LoginQuery query)
     {
         var usuario = await _usuarios.ObtenerPorEmailAsync(query.Email);
 
@@ -40,6 +42,7 @@ public class LoginQueryHandler
         if (!usuario.EmailVerificado)
             throw new SubastaYa.Domain.Exceptions.UnauthorizedException("Verificá tu correo electrónico antes de ingresar.");
 
-        return new AuthUserDto(usuario.Id, usuario.Nombre, usuario.Email);
+        var token = _tokenService.GenerarTokenAcceso(usuario.Id, usuario.Nombre, usuario.Email);
+        return new LoginResponseDto(usuario.Id, usuario.Nombre, usuario.Email, token);
     }
 }

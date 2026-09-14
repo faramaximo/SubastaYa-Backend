@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
             btnSubmit.disabled = true;
             btnSubmit.innerText = "Creando cuenta...";
 
-            const response = await fetch('/api/auth/register', {
+            const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
+            const response = await fetch(`${base}/api/v1/users`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre, email, password })

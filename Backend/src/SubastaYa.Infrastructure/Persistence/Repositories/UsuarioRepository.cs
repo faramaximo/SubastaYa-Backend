@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Infrastructure.Data;
@@ -31,6 +31,18 @@ namespace SubastaYa.Infrastructure.Repositories
             await _context.Usuarios.AddAsync(usuario);
             // El repositorio solo prepara la acción en memoria. 
             // El caso de uso (CommandHandler) es el que va a llamar a IUnitOfWork.SaveChangesAsync().
+        }
+
+        public async Task<Usuario?> ObtenerPorTokenVerificacionAsync(string hash)
+        {
+            return await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.TokenVerificacionHash == hash);
+        }
+
+        public async Task<Usuario?> ObtenerPorTokenRecuperacionAsync(string hash)
+        {
+            return await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.TokenRecuperacionHash == hash);
         }
     }
 }

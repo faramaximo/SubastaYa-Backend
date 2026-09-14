@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.UseCases.Wallet.Commands;
 using SubastaYa.Application.UseCases.Wallet.Handlers;
@@ -6,9 +8,9 @@ using SubastaYa.Application.UseCases.Wallet.Queries;
 
 namespace SubastaYa.WebApi.Controllers;
 
+[Authorize]
 [ApiController]
-[Route("api/[controller]")]
-[Route("api/v1/[controller]")] // Compatibilidad con la interfaz existente.
+[Route("api/v1/wallet")]
 public class WalletController : ControllerBase
 {
     private readonly DepositCommandHandler _depositHandler;
@@ -25,21 +27,50 @@ public class WalletController : ControllerBase
         _transactionsHandler = transactionsHandler;
     }
 
-    [HttpGet("balance/{usuarioId:int}")]
-    public async Task<IActionResult> GetBalance(int usuarioId)
+    /// <summary>
+    /// GET /api/v1/wallet
+    /// Devuelve el balance y estado de la billetera del usuario.
+    /// </summary>
+    [HttpGet]
+    [HttpGet("~/api/v1/users/{usuarioId:int}/wallet")]
+    public async Task<IActionResult> GetBalance([FromRoute] int? usuarioId = null)
     {
-        var balance = await _balanceHandler.Handle(new GetBalanceQuery(usuarioId));
+        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (usuarioId.HasValue && authUserId != usuarioId.Value)
+            return Forbid();
+
+        var balance = await _balanceHandler.Handle(new GetBalanceQuery(authUserId));
         return balance is null ? NotFound(new { error = "Billetera no encontrada." }) : Ok(balance);
     }
 
-    [HttpGet("transactions/{usuarioId:int}")]
-    public async Task<IActionResult> GetTransactions(int usuarioId) =>
-        Ok(await _transactionsHandler.Handle(new GetTransactionsQuery(usuarioId)));
-
-    [HttpPost("deposit/{usuarioId:int}")]
-    public async Task<IActionResult> Deposit(int usuarioId, [FromBody] DepositRequestDto dto)
+    /// <summary>
+    /// GET /api/v1/wallet/transactions
+    /// Devuelve el historial de transacciones de la billetera (Ledger).
+    /// </summary>
+    [HttpGet("transactions")]
+    [HttpGet("~/api/v1/users/{usuarioId:int}/wallet/transactions")]
+    public async Task<IActionResult> GetTransactions([FromRoute] int? usuarioId = null)
     {
-        await _depositHandler.Handle(new DepositCommand(usuarioId, dto.Monto));
+        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (usuarioId.HasValue && authUserId != usuarioId.Value)
+            return Forbid();
+
+        return Ok(await _transactionsHandler.Handle(new GetTransactionsQuery(authUserId)));
+    }
+
+    /// <summary>
+    /// POST /api/v1/wallet/deposits
+    /// Procesa la creación de un nuevo depósito en la billetera.
+    /// </summary>
+    [HttpPost("deposits")]
+    [HttpPost("~/api/v1/users/{usuarioId:int}/wallet/deposits")]
+    public async Task<IActionResult> Deposit([FromBody] DepositRequestDto dto, [FromRoute] int? usuarioId = null)
+    {
+        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (usuarioId.HasValue && authUserId != usuarioId.Value)
+            return Forbid();
+
+        await _depositHandler.Handle(new DepositCommand(authUserId, dto.Monto));
         return Ok(new { message = "Depósito realizado correctamente." });
     }
 }

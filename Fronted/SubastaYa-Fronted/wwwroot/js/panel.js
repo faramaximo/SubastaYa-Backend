@@ -15,7 +15,7 @@ if (!userId) {
     // ==========================================
     async function cargarCompras() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/usuarios/${userId}/pujas`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/bids`);
             if (!response.ok) throw new Error("Error al cargar las pujas");
             const pujas = await response.json();
 
@@ -73,7 +73,7 @@ if (!userId) {
     // ==========================================
     async function cargarVentas() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/usuarios/${userId}/publicaciones`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/auctions`);
             if (!response.ok) throw new Error("Error al cargar las publicaciones");
             const ventas = await response.json();
 

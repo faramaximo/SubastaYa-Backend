@@ -63,7 +63,7 @@ public class RegisterUserCommandHandler
                 ? cmd.BaseUrl
                 : (_configuration?["App:BaseUrl"] ?? "http://localhost:5000");
 
-            var verificationLink = $"{baseUrl.TrimEnd('/')}/api/auth/verify-email?token={Uri.EscapeDataString(rawToken)}";
+            var verificationLink = $"{baseUrl.TrimEnd('/')}/api/v1/users/email-verifications?token={Uri.EscapeDataString(rawToken)}";
             var subject = "Verificá tu cuenta en SubastaYa";
             var htmlBody = $@"
                 <div style=""font-family: Arial, sans-serif; line-height: 1.6; color: #333;"">

@@ -237,7 +237,10 @@ document.getElementById('btnOfertar').onclick = async () => {
         const btn = document.getElementById('btnOfertar');
         btn.disabled = true;
 
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        const headers = { 
+            'Content-Type': 'application/json', 
+            'Authorization': 'Bearer ' + localStorage.getItem('token') 
+        };
         if (salaVersion) headers['If-Match'] = salaVersion;
 
         const r = await fetch(`${API_BASE_URL}/api/bids`, {

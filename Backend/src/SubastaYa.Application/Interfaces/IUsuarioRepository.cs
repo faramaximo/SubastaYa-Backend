@@ -1,4 +1,4 @@
-﻿// SubastaYa.Application/Interfaces/IUsuarioRepository.cs
+// SubastaYa.Application/Interfaces/IUsuarioRepository.cs
 using SubastaYa.Domain.Entities;
 
 namespace SubastaYa.Application.Interfaces
@@ -8,6 +8,8 @@ namespace SubastaYa.Application.Interfaces
         Task<Usuario?> ObtenerPorEmailAsync(string email);
         Task<bool> ExisteEmailAsync(string email);
         Task AgregarAsync(Usuario usuario);
+        Task<Usuario?> ObtenerPorTokenVerificacionAsync(string hash);
+        Task<Usuario?> ObtenerPorTokenRecuperacionAsync(string hash);
         // Recordá la regla: NO hay SaveChangesAsync acá.
     }
 }

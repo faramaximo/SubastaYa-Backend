@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,13 +6,13 @@ namespace SubastaYa.Domain.Entities
 {
     public class AuditoriaLog
     {
-        public int Id { get; set; }
-        public string Entidad { get; set; } = string.Empty;
-        public int EntidadId { get; set; }
-        public string Accion { get; set; } = string.Empty;
-        public int? UsuarioId { get; set; }
-        public string DetalleJson { get; set; } = string.Empty;
-        public DateTime Fecha { get; set; } = DateTime.UtcNow;   
-        public Usuario? Usuario { get; set; }
+        public int Id { get; init; }
+        public string Entidad { get; init; } = string.Empty;
+        public int EntidadId { get; init; }
+        public string Accion { get; init; } = string.Empty;
+        public int? UsuarioId { get; init; }
+        public string DetalleJson { get; init; } = string.Empty;
+        public DateTime Fecha { get; init; } = DateTime.UtcNow;   
+        public Usuario? Usuario { get; init; }
     }
 }

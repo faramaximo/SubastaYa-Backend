@@ -50,7 +50,7 @@ public class RegisterUserCommandHandlerTests
         await _emailSender.Received(1).SendAsync(
             command.Email,
             Arg.Any<string>(),
-            Arg.Is<string>(body => body.Contains("/api/auth/verify-email?token=")),
+            Arg.Is<string>(body => body.Contains("/api/v1/users/email-verifications?token=")),
             Arg.Any<CancellationToken>());
 
         // d. Confirmar transacción

@@ -20,44 +20,10 @@ public class SubastaYaDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Mapeo preciso de decimales
-        modelBuilder.Entity<Billetera>(b =>
-        {
-            b.HasKey(x => x.Id);
-
-            b.Property(x => x.SaldoTotal).HasPrecision(18, 2);
-            b.Property(x => x.SaldoRetenido).HasPrecision(18, 2);
-
-            // Asigna UUID() por defecto en MySQL si C# envía el campo vacío
-            b.Property(x => x.Version)
-             .IsConcurrencyToken()
-             .HasDefaultValueSql("(UUID())");
-        });
-
-        modelBuilder.Entity<Subasta>(s =>
-        {
-            s.Property(x => x.PrecioBase).HasPrecision(18, 2);
-            s.Property(x => x.IncrementoMinimo).HasPrecision(18, 2);
-            s.Property(x => x.Version).IsRowVersion(); // Manejado automáticamente por Pomelo/MySQL
-
-            //EL ÍNDICE PARA OPTIMIZAR EL WORKER
-            s.HasIndex(x => new { x.Estado, x.FechaFin });
-        });
-
-        modelBuilder.Entity<Puja>(p =>
-        {
-            p.Property(x => x.Monto).HasPrecision(18, 2);
-        });
-
-        modelBuilder.Entity<TransaccionLedger>(t =>
-        {
-            t.Property(x => x.Monto).HasPrecision(18, 2);
-
-            // 👈 AGREGAR ESTA LÍNEA: Guarda 'Deposito', 'Retencion', etc. como texto en MySQL
-            t.Property(x => x.Tipo)
-             .HasConversion<string>()
-             .HasMaxLength(20);
-        });
+        // Aplica todas las configuraciones IEntityTypeConfiguration del ensamblado actual
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        modelBuilder.ApplyConfiguration(new Configurations.AuditoriaLogConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CategoriaConfiguration());
     }
 }
 
