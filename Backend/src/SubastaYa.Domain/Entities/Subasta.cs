@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
+using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
 
@@ -76,7 +76,7 @@ namespace SubastaYa.Domain.Entities
                 throw new DomainException("Solo se pueden realizar pujas en subastas activas.");
 
             if (compradorId == VendedorId)
-                throw new DomainException("El vendedor no puede pujar en su propia subasta.");
+                throw new ForbiddenException("El vendedor no puede pujar en su propia subasta.");
 
             if (DateTime.UtcNow > FechaFin)
                 throw new DomainException("La subasta ya ha finalizado su tiempo.");

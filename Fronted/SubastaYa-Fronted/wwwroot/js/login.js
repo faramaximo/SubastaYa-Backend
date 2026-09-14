@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btnSubmit.disabled = true;
             btnSubmit.innerText = "Verificando...";
 
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/tokens`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/tokens`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

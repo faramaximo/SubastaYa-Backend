@@ -113,7 +113,7 @@ function construirUrlConFiltros() {
     const ordenActivo = document.querySelector(".sort-pill.active");
     const orden = ordenActivo ? ordenActivo.getAttribute("data-sort") : "menor-tiempo";
 
-    let url = `${API_BASE_URL}/api/auctions?orderBy=${orden}`;
+    let url = `${API_BASE_URL}/api/v1/auctions?orderBy=${orden}`;
 
     if (estado && estado !== "todos") url += `&estado=${estado}`;
     if (categoria && categoria !== "todas") url += `&categoriaId=${categoria}`;

@@ -186,7 +186,7 @@
                 btnSubmitLogin.textContent = "Verificando...";
 
                 const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
-                const response = await fetch(`${base}/api/v1/auth/tokens`, {
+                const response = await fetch(`${base}/api/v1/tokens`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })

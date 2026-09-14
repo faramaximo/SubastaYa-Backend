@@ -22,7 +22,7 @@ function getAuthData() {
 }
 
 function getWalletApiUrl() {
-    return `${API_BASE_URL}/api/v1/wallet`;
+    return `${API_BASE_URL}/api/v1/wallets`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -54,7 +54,7 @@ async function loadWalletData() {
 async function fetchWalletBalance() {
     try {
         const { token } = getAuthData();
-        const response = await fetch(getWalletApiUrl(), {
+        const response = await fetch(`${getWalletApiUrl()}/balance`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

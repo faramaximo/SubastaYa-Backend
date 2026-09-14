@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Exceptions;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace SubastaYa.WebApi.Middlewares;
 
@@ -26,125 +26,109 @@ public class ExceptionMiddleware
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            _logger.LogWarning(ex, "Colisión de concurrencia detectada en EF Core (RowVersion/xmin).");
-
-            var usuarioId = ExtraerUsuarioId(context);
-            var subastaId = ExtraerSubastaId(context);
-
-            var detalleColision = new
-            {
-                mensaje = "Colisión de concurrencia detectada por pujas simultáneas sobre la misma subasta.",
-                ruta = context.Request.Path.Value,
-                metodo = context.Request.Method,
-                subastaId = subastaId,
-                usuarioId = usuarioId,
-                entidadesEnConflicto = ex.Entries.Select(e => new
-                {
-                    entidad = e.Metadata.Name,
-                    estado = e.State.ToString(),
-                    claves = e.Properties.Where(p => p.Metadata.IsPrimaryKey()).Select(p => new { p.Metadata.Name, p.CurrentValue })
-                }),
-                errorOriginal = ex.Message,
-                timestamp = DateTime.UtcNow
-            };
-
-            await auditService.RegistrarYConfirmarEventoAsync(
-                entidad: "Subasta",
-                entidadId: subastaId ?? 0,
-                accion: "CONFLICTO_CONCURRENCIA_PUJA",
-                usuarioId: usuarioId,
-                detalle: detalleColision
-            );
-
-            context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 409,
-                message = "Alguien más realizó una puja al mismo tiempo. Actualizá la subasta y volvé a intentarlo."
-            }));
+            _logger.LogWarning(ex, "Colisión de concurrencia detectada en EF Core.");
+            await RegistrarConflictoAsync(context, auditService, ex.Message);
+            await EscribirProblemaAsync(context, HttpStatusCode.Conflict,
+                "Conflicto de concurrencia",
+                "Alguien modificó la subasta mientras enviabas la oferta. Actualizala y volvé a intentarlo.");
         }
         catch (ConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Colisión de concurrencia a nivel de dominio.");
+            await RegistrarConflictoAsync(context, auditService, ex.Message);
+            await EscribirProblemaAsync(context, HttpStatusCode.Conflict, "Conflicto de concurrencia", ex.Message);
+        }
+        catch (UnauthorizedException ex)
+        {
+            await EscribirProblemaAsync(context, HttpStatusCode.Unauthorized, "No autenticado", ex.Message);
+        }
+        catch (ForbiddenException ex)
+        {
+            await EscribirProblemaAsync(context, HttpStatusCode.Forbidden, "Acción prohibida", ex.Message);
+        }
+        catch (ResourceNotFoundException ex)
+        {
+            await EscribirProblemaAsync(context, HttpStatusCode.NotFound, "Recurso no encontrado", ex.Message);
+        }
+        catch (DomainException ex)
+        {
+            // El JSON es válido: la petición no puede procesarse por una regla del dominio.
+            await EscribirProblemaAsync(context, HttpStatusCode.UnprocessableEntity,
+                "Regla de negocio no satisfecha", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error no controlado");
+            await EscribirProblemaAsync(context, HttpStatusCode.InternalServerError,
+                "Error interno del servidor", "Ocurrió un error interno en el servidor.");
+        }
+    }
 
-            var usuarioId = ExtraerUsuarioId(context);
-            var subastaId = ExtraerSubastaId(context);
+    private static async Task EscribirProblemaAsync(HttpContext context, HttpStatusCode status, string title, string detail)
+    {
+        if (context.Response.HasStarted)
+            return;
 
-            var detalleColision = new
-            {
-                mensaje = ex.Message,
-                ruta = context.Request.Path.Value,
-                metodo = context.Request.Method,
-                subastaId = subastaId,
-                usuarioId = usuarioId,
-                timestamp = DateTime.UtcNow
-            };
+        var problem = new ProblemDetails
+        {
+            Status = (int)status,
+            Title = title,
+            Detail = detail,
+            Instance = context.Request.Path
+        };
+        problem.Extensions["traceId"] = context.TraceIdentifier;
 
+        context.Response.Clear();
+        context.Response.StatusCode = (int)status;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(problem);
+    }
+
+    private static async Task RegistrarConflictoAsync(HttpContext context, IAuditService auditService, string mensaje)
+    {
+        var usuarioId = ExtraerUsuarioId(context);
+        var subastaId = ExtraerSubastaId(context);
+
+        try
+        {
             await auditService.RegistrarYConfirmarEventoAsync(
                 entidad: "Subasta",
                 entidadId: subastaId ?? 0,
                 accion: "CONFLICTO_CONCURRENCIA_PUJA",
                 usuarioId: usuarioId,
-                detalle: detalleColision
-            );
-
-            context.Response.StatusCode = (int)HttpStatusCode.Conflict;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 409,
-                message = ex.Message
-            }));
+                detalle: new
+                {
+                    mensaje,
+                    ruta = context.Request.Path.Value,
+                    metodo = context.Request.Method,
+                    subastaId,
+                    usuarioId,
+                    timestamp = DateTime.UtcNow
+                });
         }
-        catch (UnauthorizedException ex)
+        catch (Exception auditException)
         {
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 401,
-                message = ex.Message
-            }));
-        }
-        catch (DomainException ex)
-        {
-            // Siguiendo el patrón del middleware expuesto en las diapositivas de la cátedra: HTTP 400 Bad Request
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 400,
-                message = ex.Message
-            }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error no controlado");
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                statusCode = 500,
-                message = "Ocurrió un error interno en el servidor."
-            }));
+            // El fallo de auditoría no debe ocultar el 409 que recibió el cliente.
+            context.RequestServices.GetRequiredService<ILogger<ExceptionMiddleware>>()
+                .LogError(auditException, "No se pudo auditar el conflicto de concurrencia.");
         }
     }
 
     private static int? ExtraerUsuarioId(HttpContext context)
     {
         var claim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (int.TryParse(claim, out var id)) return id;
-        return null;
+        return int.TryParse(claim, out var id) ? id : null;
     }
 
     private static int? ExtraerSubastaId(HttpContext context)
     {
-        if (context.Request.RouteValues.TryGetValue("subastaId", out var val) ||
+        if (context.Request.RouteValues.TryGetValue("auctionId", out var val) ||
+            context.Request.RouteValues.TryGetValue("subastaId", out val) ||
             context.Request.RouteValues.TryGetValue("id", out val))
         {
-            if (int.TryParse(val?.ToString(), out var id)) return id;
+            return int.TryParse(val?.ToString(), out var id) ? id : null;
         }
+
         return null;
     }
 }

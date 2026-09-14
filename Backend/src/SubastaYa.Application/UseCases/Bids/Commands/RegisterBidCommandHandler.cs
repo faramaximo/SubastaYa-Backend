@@ -39,13 +39,13 @@ public class RegisterBidCommandHandler
         try
         {
             var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)
-                ?? throw new DomainException("La subasta especificada no existe.");
+                ?? throw new ResourceNotFoundException("La subasta especificada no existe.");
 
             if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
-                throw new DomainException("La subasta no se encuentra activa o ya ha finalizado.");
+                throw new UnprocessableEntityException("La subasta no se encuentra activa o ya ha finalizado.");
 
             if (subasta.VendedorId == command.UsuarioId)
-                throw new DomainException("El vendedor no puede pujar en su propia subasta.");
+                throw new ForbiddenException("El vendedor no puede pujar en su propia subasta.");
 
             var pujaLiderAnterior = subasta.Pujas
                 .OrderByDescending(p => p.Monto)
@@ -57,12 +57,12 @@ public class RegisterBidCommandHandler
 
             if (command.Monto < montoMinimoRequerido)
             {
-                throw new DomainException(
+                throw new UnprocessableEntityException(
                     $"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
             }
 
             var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId)
-                ?? throw new DomainException("El usuario no posee una billetera virtual activa.");
+                ?? throw new ResourceNotFoundException("La billetera del usuario no existe.");
 
             var esMejoraDelMismoLider = pujaLiderAnterior?.CompradorId == command.UsuarioId;
             var montoARetener = esMejoraDelMismoLider
@@ -71,7 +71,7 @@ public class RegisterBidCommandHandler
 
             if (billeteraNuevoOfertante.SaldoDisponible < montoARetener)
             {
-                throw new DomainException(
+                throw new UnprocessableEntityException(
                     $"Saldo insuficiente. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, " +
                     $"requerido: ${montoARetener}.");
             }
@@ -81,7 +81,7 @@ public class RegisterBidCommandHandler
             {
                 var billeteraLiderAnterior =
                     await _walletRepository.GetByUserIdAsync(pujaLiderAnterior.CompradorId)
-                    ?? throw new DomainException("El líder anterior no posee una billetera virtual activa.");
+                    ?? throw new ResourceNotFoundException("La billetera del líder anterior no existe.");
 
                 billeteraLiderAnterior.LiberarFondos(pujaLiderAnterior.Monto);
 

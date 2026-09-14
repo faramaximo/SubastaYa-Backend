@@ -8,7 +8,7 @@ using SubastaYa.WebApi.Models;
 namespace SubastaYa.WebApi.Controllers;
 
 [ApiController]
-[Route("api/v1/auth")]
+[Route("api/v1")]
 public class AuthController : ControllerBase
 {
     private readonly LoginQueryHandler _loginHandler;
@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// POST /api/v1/auth/tokens (Reemplaza POST /api/Auth/login)
+    /// POST /api/v1/tokens (Reemplaza POST /api/Auth/login)
     /// </summary>
     [HttpPost("tokens")]
     public async Task<IActionResult> CreateToken([FromBody] LoginDto dto)
@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// POST /api/v1/auth/password-resets (Reemplaza POST /api/Auth/forgot-password)
+    /// POST /api/v1/password-resets (Reemplaza POST /api/Auth/forgot-password)
     /// </summary>
     [HttpPost("password-resets")]
     public async Task<IActionResult> RequestPasswordReset([FromBody] EmailRequestDto dto, CancellationToken cancellationToken)
@@ -45,9 +45,9 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// POST /api/v1/auth/password-resets/confirm
+    /// POST /api/v1/password-reset-confirmations
     /// </summary>
-    [HttpPost("password-resets/confirm")]
+    [HttpPost("password-reset-confirmations")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, CancellationToken cancellationToken)
     {
         await _resetPasswordHandler.Handle(new ResetPasswordCommand(dto.Token, dto.Password), cancellationToken);

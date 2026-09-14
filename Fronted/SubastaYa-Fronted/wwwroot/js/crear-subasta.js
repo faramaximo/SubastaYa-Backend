@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const response = await fetch(`${API_BASE_URL}/api/auctions`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auctions`, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(nuevaSubasta)

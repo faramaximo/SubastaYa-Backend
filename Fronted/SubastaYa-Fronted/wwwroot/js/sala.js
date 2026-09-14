@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Función central para cargar los datos
 async function mostrarSala(id) {
     try {
-        const resp = await fetch(`${API_BASE_URL}/api/auctions/${id}`);
+        const resp = await fetch(`${API_BASE_URL}/api/v1/auctions/${id}`);
         if (!resp.ok) throw new Error('No se pudo cargar la subasta');
         const subasta = await resp.json();
 
@@ -243,10 +243,10 @@ document.getElementById('btnOfertar').onclick = async () => {
         };
         if (salaVersion) headers['If-Match'] = salaVersion;
 
-        const r = await fetch(`${API_BASE_URL}/api/bids`, {
+        const r = await fetch(`${API_BASE_URL}/api/v1/auctions/${currentSalaId}/bids`, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ subastaId: parseInt(currentSalaId), monto })
+            body: JSON.stringify({ monto })
         });
 
         if (r.status === 409 || r.status === 412) {
@@ -262,8 +262,9 @@ document.getElementById('btnOfertar').onclick = async () => {
                 if (errorData.errors) {
                     const firstErrorKey = Object.keys(errorData.errors)[0];
                     errorMsg = errorData.errors[firstErrorKey][0];
-                } else if (errorData.error || errorData.message || errorData.detail || errorData.title) {
-                    errorMsg = errorData.error || errorData.message || errorData.detail || errorData.title;
+                } else if (errorData.detail || errorData.message || errorData.title || errorData.error) {
+                    // RFC 7807 / ProblemDetails: el texto específico para el cliente es "detail".
+                    errorMsg = errorData.detail || errorData.message || errorData.title || errorData.error;
                 } else if (typeof errorData === 'string') {
                     errorMsg = errorData;
                 }
@@ -316,11 +317,29 @@ function formatLocalDateTime(value) {
     return new Intl.DateTimeFormat("es-AR", { dateStyle: "short", timeStyle: "short" }).format(date);
 }
 
+let toastSequence = 0;
+
 function showToast(type, message) {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+
     const toastEl = document.createElement('div');
+    const toastId = window.crypto?.randomUUID?.() ?? `toast-${Date.now()}-${++toastSequence}`;
+    toastEl.id = toastId;
     toastEl.className = 'toast align-items-center text-white bg-' + (type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'dark') + ' border-0';
-    toastEl.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white ms-auto me-2 mt-2" data-bs-dismiss="toast"></button></div>`;
+
+    const content = document.createElement('div');
+    content.className = 'd-flex';
+    const body = document.createElement('div');
+    body.className = 'toast-body';
+    body.textContent = message || 'Error al procesar la oferta';
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close btn-close-white ms-auto me-2 mt-2';
+    closeButton.dataset.bsDismiss = 'toast';
+    closeButton.setAttribute('aria-label', 'Cerrar');
+    content.append(body, closeButton);
+    toastEl.appendChild(content);
     container.appendChild(toastEl);
     new bootstrap.Toast(toastEl, { delay: 4000 }).show();
     toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());

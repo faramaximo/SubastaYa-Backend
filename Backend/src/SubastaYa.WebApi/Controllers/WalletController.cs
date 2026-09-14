@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.UseCases.Wallet.Commands;
@@ -10,67 +11,61 @@ namespace SubastaYa.WebApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/v1/wallet")]
+[Route("api/v1/wallets")]
 public class WalletController : ControllerBase
 {
     private readonly DepositCommandHandler _depositHandler;
     private readonly GetBalanceQueryHandler _balanceHandler;
     private readonly GetTransactionsQueryHandler _transactionsHandler;
 
-    public WalletController(
-        DepositCommandHandler depositHandler,
-        GetBalanceQueryHandler balanceHandler,
-        GetTransactionsQueryHandler transactionsHandler)
+    public WalletController(DepositCommandHandler depositHandler, GetBalanceQueryHandler balanceHandler, GetTransactionsQueryHandler transactionsHandler)
     {
         _depositHandler = depositHandler;
         _balanceHandler = balanceHandler;
         _transactionsHandler = transactionsHandler;
     }
 
-    /// <summary>
-    /// GET /api/v1/wallet
-    /// Devuelve el balance y estado de la billetera del usuario.
-    /// </summary>
-    [HttpGet]
-    [HttpGet("~/api/v1/users/{usuarioId:int}/wallet")]
-    public async Task<IActionResult> GetBalance([FromRoute] int? usuarioId = null)
+    [HttpGet("balance")]
+    [ProducesResponseType(typeof(WalletBalanceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBalance()
     {
-        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (usuarioId.HasValue && authUserId != usuarioId.Value)
-            return Forbid();
-
-        var balance = await _balanceHandler.Handle(new GetBalanceQuery(authUserId));
-        return balance is null ? NotFound(new { error = "Billetera no encontrada." }) : Ok(balance);
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var balance = await _balanceHandler.Handle(new GetBalanceQuery(usuarioId));
+        return balance is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Recurso no encontrado", detail: "La billetera especificada no existe.")
+            : Ok(balance);
     }
 
-    /// <summary>
-    /// GET /api/v1/wallet/transactions
-    /// Devuelve el historial de transacciones de la billetera (Ledger).
-    /// </summary>
     [HttpGet("transactions")]
-    [HttpGet("~/api/v1/users/{usuarioId:int}/wallet/transactions")]
-    public async Task<IActionResult> GetTransactions([FromRoute] int? usuarioId = null)
+    [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactions()
     {
-        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (usuarioId.HasValue && authUserId != usuarioId.Value)
-            return Forbid();
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var balance = await _balanceHandler.Handle(new GetBalanceQuery(usuarioId));
+        if (balance is null)
+            return Problem(statusCode: StatusCodes.Status404NotFound, title: "Recurso no encontrado", detail: "La billetera especificada no existe.");
 
-        return Ok(await _transactionsHandler.Handle(new GetTransactionsQuery(authUserId)));
+        return Ok(await _transactionsHandler.Handle(new GetTransactionsQuery(usuarioId)));
     }
 
-    /// <summary>
-    /// POST /api/v1/wallet/deposits
-    /// Procesa la creación de un nuevo depósito en la billetera.
-    /// </summary>
     [HttpPost("deposits")]
-    [HttpPost("~/api/v1/users/{usuarioId:int}/wallet/deposits")]
-    public async Task<IActionResult> Deposit([FromBody] DepositRequestDto dto, [FromRoute] int? usuarioId = null)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> CreateDeposit([FromBody] CreateDepositRequestDto dto)
     {
-        var authUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (usuarioId.HasValue && authUserId != usuarioId.Value)
-            return Forbid();
-
-        await _depositHandler.Handle(new DepositCommand(authUserId, dto.Monto));
-        return Ok(new { message = "Depósito realizado correctamente." });
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _depositHandler.Handle(new DepositCommand(usuarioId, dto.Monto!.Value));
+        return Created("/api/v1/wallets/transactions", new { mensaje = "Depósito realizado correctamente." });
     }
+}
+public sealed class CreateDepositRequestDto
+{
+    [Required]
+    public decimal? Monto { get; init; }
 }

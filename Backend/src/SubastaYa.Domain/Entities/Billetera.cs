@@ -54,7 +54,7 @@ public class Billetera
     {
         if (monto <= 0) throw new DomainException("El monto a retener debe ser mayor a cero.");
         if (monto > SaldoDisponible)
-            throw new DomainException("Fondos insuficientes para esta puja.");
+            throw new UnprocessableEntityException("Fondos insuficientes para esta puja.");
         SaldoRetenido += monto;
     }
 
