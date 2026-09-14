@@ -15,7 +15,9 @@ if (!userId) {
     // ==========================================
     async function cargarCompras() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/bids`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/bids`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
             if (!response.ok) throw new Error("Error al cargar las pujas");
             const pujas = await response.json();
 
@@ -73,7 +75,9 @@ if (!userId) {
     // ==========================================
     async function cargarVentas() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/auctions`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/users/${userId}/auctions`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+            });
             if (!response.ok) throw new Error("Error al cargar las publicaciones");
             const ventas = await response.json();
 

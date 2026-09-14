@@ -12,4 +12,4 @@ public record RegisterCommand(
     string Email,
     string Password,
     string? BaseUrl = null
-) : RegisterUserCommand(Nombre, Email, Password, BaseUrl);
+) : RegisterUserCommand(Nombre, Email, Password, BaseUrl);
