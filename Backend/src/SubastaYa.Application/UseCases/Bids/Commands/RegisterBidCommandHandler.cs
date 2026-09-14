@@ -55,6 +55,10 @@ public class RegisterBidCommandHandler
                 ? subasta.PrecioBase
                 : pujaLiderAnterior.Monto + subasta.IncrementoMinimo;
 
+            // Si otra solicitud idéntica ya ganó la carrera, no es una puja inválida: el estado cambió.
+            if (pujaLiderAnterior is not null && pujaLiderAnterior.Monto == command.Monto)
+                throw new ConcurrencyException("La subasta fue modificada por otro usuario. Por favor intente nuevamente.");
+
             if (command.Monto < montoMinimoRequerido)
             {
                 throw new UnprocessableEntityException(

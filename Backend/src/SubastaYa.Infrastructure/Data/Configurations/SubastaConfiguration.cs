@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SubastaYa.Domain.Entities;
 
@@ -12,6 +12,7 @@ public class SubastaConfiguration : IEntityTypeConfiguration<Subasta>
 
         builder.Property(x => x.PrecioBase).HasPrecision(18, 2);
         builder.Property(x => x.IncrementoMinimo).HasPrecision(18, 2);
+        builder.Property(x => x.UltimaPujaFecha).HasColumnType("datetime(6)");
 
         builder.Property(x => x.Version)
                .IsRowVersion()

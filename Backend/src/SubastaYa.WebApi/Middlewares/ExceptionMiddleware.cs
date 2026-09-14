@@ -30,13 +30,13 @@ public class ExceptionMiddleware
             await RegistrarConflictoAsync(context, auditService, ex.Message);
             await EscribirProblemaAsync(context, HttpStatusCode.Conflict,
                 "Conflicto de concurrencia",
-                "Alguien modificó la subasta mientras enviabas la oferta. Actualizala y volvé a intentarlo.");
+                "La subasta fue modificada por otro usuario. Por favor intente nuevamente.");
         }
         catch (ConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Colisión de concurrencia a nivel de dominio.");
             await RegistrarConflictoAsync(context, auditService, ex.Message);
-            await EscribirProblemaAsync(context, HttpStatusCode.Conflict, "Conflicto de concurrencia", ex.Message);
+            await EscribirProblemaAsync(context, HttpStatusCode.Conflict, "Conflicto de concurrencia", "La subasta fue modificada por otro usuario. Por favor intente nuevamente.");
         }
         catch (UnauthorizedException ex)
         {

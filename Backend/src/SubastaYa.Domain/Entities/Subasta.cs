@@ -17,6 +17,7 @@ namespace SubastaYa.Domain.Entities
         public DateTime FechaInicio { get; private set; }
         public DateTime FechaFin { get; private set; }
         public EstadoSubasta Estado { get; private set; }
+        public DateTime? UltimaPujaFecha { get; private set; }
 
         [Timestamp]
         public byte[] Version { get; private set; } = Array.Empty<byte>(); // EF Core usará esto para la concurrencia
@@ -101,6 +102,8 @@ namespace SubastaYa.Domain.Entities
                 FechaFin = FechaFin.AddMinutes(2);
             }
 
+            // Fuerza un UPDATE de Subasta en cada puja para validar Version de forma optimista.
+            UltimaPujaFecha = nuevaPuja.FechaPuja;
             _pujas.Add(nuevaPuja);
         }
         // Métodos para que el Worker cambie los estados respetando el encapsulamiento

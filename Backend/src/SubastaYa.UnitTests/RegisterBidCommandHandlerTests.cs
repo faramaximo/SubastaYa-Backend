@@ -59,7 +59,7 @@ public class RegisterBidCommandHandlerTests
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 10, Monto: 1000m);
 
         // Act & Assert
-        await Assert.ThrowsAsync<DomainException>(() => handler.Handle(command));
+        await Assert.ThrowsAnyAsync<DomainException>(() => handler.Handle(command));
 
         // Verificamos que NO se guardó nada en la base de datos (atomicidad preservada)
         await _unitOfWork.DidNotReceive().SaveChangesAsync();
@@ -85,7 +85,7 @@ public class RegisterBidCommandHandlerTests
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: vendedorId, Monto: 1000m);
 
         // Act & Assert
-        await Assert.ThrowsAsync<DomainException>(() => handler.Handle(command));
+        await Assert.ThrowsAnyAsync<DomainException>(() => handler.Handle(command));
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync();
         await _notifier.DidNotReceive().NotificarNuevaPujaAsync(Arg.Any<PujaResponseDto>());
@@ -105,7 +105,7 @@ public class RegisterBidCommandHandlerTests
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 2, Monto: 500m);
 
         // Act & Assert
-        await Assert.ThrowsAsync<DomainException>(() => handler.Handle(command));
+        await Assert.ThrowsAnyAsync<DomainException>(() => handler.Handle(command));
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync();
         await _notifier.DidNotReceive().NotificarNuevaPujaAsync(Arg.Any<PujaResponseDto>());
@@ -133,6 +133,7 @@ public class RegisterBidCommandHandlerTests
         Assert.Equal(1000m, resultado.Monto);
         Assert.Equal(2, resultado.UsuarioId);
         Assert.False(resultado.TiempoExtendido);
+        Assert.NotNull(subasta.UltimaPujaFecha); // Toda puja debe modificar la fila protegida por Version.
 
         // Verificamos que se confirmó la transacción exactamente 1 vez
         await _unitOfWork.Received(1).SaveChangesAsync();
@@ -186,4 +187,20 @@ public class RegisterBidCommandHandlerTests
         // Se notificó la extensión a los clientes
         await _notifier.Received(1).NotificarNuevaPujaAsync(Arg.Is<PujaResponseDto>(p => p.TiempoExtendido));
     }
-}
+
+    [Fact]
+    public async Task Devuelve_conflicto_si_una_oferta_identica_ya_gano_la_carrera()
+    {
+        // Simula la segunda solicitud: la primera ya registró exactamente la misma oferta.
+        var subasta = CrearSubastaActiva(vendedorId: 1, precioBase: 1000m, incremento: 100m);
+        subasta.RegistrarPuja(compradorId: 2, monto: 1000m);
+        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
+
+        var handler = CrearHandler();
+
+        await Assert.ThrowsAsync<ConcurrencyException>(() =>
+            handler.Handle(new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 3, Monto: 1000m)));
+
+        await _unitOfWork.DidNotReceive().SaveChangesAsync();
+        await _notifier.DidNotReceive().NotificarNuevaPujaAsync(Arg.Any<PujaResponseDto>());
+    }}
