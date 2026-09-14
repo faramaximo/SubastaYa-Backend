@@ -25,5 +25,17 @@ public class SubastaYaDbContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AuditoriaLogConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.CategoriaConfiguration());
     }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<AuditoriaLog>())
+        {
+            if (entry.State == EntityState.Modified || entry.State == EntityState.Deleted)
+            {
+                throw new InvalidOperationException("Violación de inmutabilidad: No se pueden modificar ni eliminar los registros de auditoría.");
+            }
+        }
+        return base.SaveChangesAsync(cancellationToken);
+    }
 }
 

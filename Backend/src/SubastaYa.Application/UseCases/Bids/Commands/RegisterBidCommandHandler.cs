@@ -33,31 +33,50 @@ public class RegisterBidCommandHandler
 
     public async Task<PujaResponseDto> Handle(RegisterBidCommand command)
     {
-        var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)
-            ?? throw new DomainException("La subasta especificada no existe.");
+        var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId);
+        if (subasta == null)
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, "La subasta especificada no existe.", command.Monto);
+        }
 
-        if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
-            throw new DomainException("La subasta no se encuentra activa o ya ha finalizado.");
+        if (subasta!.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, "La subasta no se encuentra activa o ya ha finalizado.", command.Monto, new { estadoActual = subasta.Estado.ToString(), fechaFin = subasta.FechaFin });
+        }
 
         if (subasta.VendedorId == command.UsuarioId)
-            throw new DomainException("El vendedor no puede pujar en su propia subasta.");
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, "El vendedor no puede pujar en su propia subasta.", command.Monto);
+        }
 
         var pujaLiderAnterior = subasta.Pujas
             .OrderByDescending(p => p.Monto)
             .FirstOrDefault();
+
+        if (pujaLiderAnterior?.CompradorId == command.UsuarioId)
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, "Ya eres el líder actual de esta subasta. No puedes superarte a ti mismo.", command.Monto);
+        }
 
         var montoMinimoRequerido = pujaLiderAnterior is null
             ? subasta.PrecioBase
             : pujaLiderAnterior.Monto + subasta.IncrementoMinimo;
 
         if (command.Monto < montoMinimoRequerido)
-            throw new DomainException($"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, $"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.", command.Monto, new { montoMinimoRequerido });
+        }
 
-        var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId)
-            ?? throw new DomainException("El usuario no posee una billetera virtual activa.");
+        var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId);
+        if (billeteraNuevoOfertante == null)
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, "El usuario no posee una billetera virtual activa.", command.Monto);
+        }
 
-        if (billeteraNuevoOfertante.SaldoDisponible < command.Monto)
-            throw new DomainException($"Saldo insuficiente en la billetera. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, Requerido: ${command.Monto}.");
+        if (billeteraNuevoOfertante!.SaldoDisponible < command.Monto)
+        {
+            await LanzarRechazoAsync(command.SubastaId, command.UsuarioId, $"Saldo insuficiente en la billetera. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, Requerido: ${command.Monto}.", command.Monto, new { saldoDisponible = billeteraNuevoOfertante.SaldoDisponible });
+        }
 
         if (pujaLiderAnterior is not null)
         {
@@ -131,5 +150,22 @@ public class RegisterBidCommandHandler
         await _notifier.NotificarNuevaPujaAsync(response);
 
         return response;
+    }
+
+    private async Task LanzarRechazoAsync(int subastaId, int usuarioId, string motivo, decimal? monto, object? detalleAdicional = null)
+    {
+        await _auditService.RegistrarYConfirmarEventoAsync(
+            entidad: "Subasta",
+            entidadId: subastaId,
+            accion: "PUJA_RECHAZADA",
+            usuarioId: usuarioId,
+            detalle: new
+            {
+                motivo,
+                montoOfertado = monto,
+                detalleAdicional
+            }
+        );
+        throw new DomainException(motivo);
     }
 }

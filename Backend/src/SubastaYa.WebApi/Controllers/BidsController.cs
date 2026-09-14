@@ -7,7 +7,7 @@ using SubastaYa.Application.UseCases.Bids.Commands;
 namespace SubastaYa.WebApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auctions")]
 [Authorize]
 public class BidsController : ControllerBase
 {
@@ -18,12 +18,12 @@ public class BidsController : ControllerBase
         _registerBidHandler = registerBidHandler;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> RegistrarPuja([FromBody] RegistrarPujaDto dto)
+    [HttpPost("{subastaId}/bids")]
+    public async Task<IActionResult> RegistrarPuja([FromRoute] int subastaId, [FromBody] RegistrarPujaDto dto)
     {
         var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        var command = new RegisterBidCommand(dto.SubastaId, usuarioId, dto.Monto);
+        var command = new RegisterBidCommand(subastaId, usuarioId, dto.Monto);
         var resultado = await _registerBidHandler.Handle(command);
 
         return Ok(resultado);

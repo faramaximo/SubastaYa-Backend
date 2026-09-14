@@ -31,6 +31,7 @@ namespace SubastaYa.WebApi.Workers
                     {
                         var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
                         var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>();
+                        var auditService = scope.ServiceProvider.GetRequiredService<IAuditService>();
                         bool huboCambios = false;
 
                         // 1. ARRANCAR SUBASTAS PROGRAMADAS
@@ -42,6 +43,20 @@ namespace SubastaYa.WebApi.Workers
                         {
                             subasta.IniciarSubastaProgramada();
                             _logger.LogInformation($"🟢 Subasta {subasta.Id} ha comenzado. Estado cambiado a ACTIVA.");
+
+                            await auditService.RegistrarEventoAsync(
+                                entidad: "Subasta",
+                                entidadId: subasta.Id,
+                                accion: "SUBASTA_INICIADA",
+                                usuarioId: null,
+                                detalle: new
+                                {
+                                    subastaId = subasta.Id,
+                                    estado = EstadoSubasta.Activa.ToString(),
+                                    fechaInicioReal = DateTime.UtcNow
+                                },
+                                cancellationToken: stoppingToken
+                            );
 
                             await notifier.NotificarSubastaIniciadaAsync(subasta.Id);
                             huboCambios = true;

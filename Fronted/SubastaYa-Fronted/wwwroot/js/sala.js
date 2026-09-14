@@ -243,10 +243,10 @@ document.getElementById('btnOfertar').onclick = async () => {
         };
         if (salaVersion) headers['If-Match'] = salaVersion;
 
-        const r = await fetch(`${API_BASE_URL}/api/bids`, {
+        const r = await fetch(`${API_BASE_URL}/api/auctions/${currentSalaId}/bids`, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ subastaId: parseInt(currentSalaId), monto })
+            body: JSON.stringify({ monto })
         });
 
         if (r.status === 409 || r.status === 412) {

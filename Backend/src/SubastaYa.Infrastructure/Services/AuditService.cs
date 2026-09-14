@@ -89,6 +89,7 @@ public class AuditService : IAuditService
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error al registrar y confirmar evento de auditoría inmediato: {Accion}", accion);
+            throw; // Relanzar la excepción para garantizar integridad estricta (no fallar en silencio)
         }
     }
 
