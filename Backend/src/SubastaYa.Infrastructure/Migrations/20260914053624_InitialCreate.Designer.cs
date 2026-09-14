@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubastaYa.Infrastructure.Data;
 
@@ -11,13 +12,15 @@ using SubastaYa.Infrastructure.Data;
 namespace SubastaYa.Infrastructure.Migrations
 {
     [DbContext(typeof(SubastaYaDbContext))]
-    partial class SubastaYaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914053624_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -177,6 +180,9 @@ namespace SubastaYa.Infrastructure.Migrations
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UltimaPujaFecha")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("UrlImagen")
                         .IsRequired()

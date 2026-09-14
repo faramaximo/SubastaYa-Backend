@@ -45,7 +45,16 @@ public class AuctionsController : ControllerBase
     public async Task<IActionResult> GetAuctionById(int id)
     {
         var subasta = await _getByIdHandler.Handle(new GetAuctionByIdQuery(id));
-        return subasta is null ? NotFound() : Ok(subasta);
+        if (subasta is null) return NotFound();
+
+        // Exponemos el token de concurrencia como ETag para que el cliente
+        // pueda enviarlo de vuelta en If-Match al pujar (contrato REST completo).
+        if (subasta.Version.Length > 0)
+        {
+            Response.Headers["ETag"] = $"\"{Convert.ToBase64String(subasta.Version)}\"";
+        }
+
+        return Ok(subasta);
     }
 
     [Authorize]

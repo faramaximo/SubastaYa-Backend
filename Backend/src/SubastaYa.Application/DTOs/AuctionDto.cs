@@ -25,4 +25,8 @@ public class AuctionDto
 
     // Lista de pujas simplificadas para evitar ciclos de serialización
     public List<PujaInfoDto> Pujas { get; set; } = new List<PujaInfoDto>();
+
+    // Token de concurrencia (RowVersion) para ETag HTTP
+    [System.Text.Json.Serialization.JsonIgnore]
+    public byte[] Version { get; set; } = Array.Empty<byte>();
 }

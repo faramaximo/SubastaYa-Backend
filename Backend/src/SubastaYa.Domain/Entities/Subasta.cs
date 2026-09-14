@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
+using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
 
@@ -17,6 +17,10 @@ namespace SubastaYa.Domain.Entities
         public DateTime FechaInicio { get; private set; }
         public DateTime FechaFin { get; private set; }
         public EstadoSubasta Estado { get; private set; }
+
+        // Se actualiza en cada puja aceptada para forzar un UPDATE sobre la fila de Subasta,
+        // activando así la verificación de concurrencia optimista (Version/RowVersion).
+        public DateTime? UltimaPujaFecha { get; private set; }
 
 
         public byte[] Version { get; private set; } = Array.Empty<byte>(); // EF Core usará esto para la concurrencia
@@ -100,6 +104,10 @@ namespace SubastaYa.Domain.Entities
             {
                 FechaFin = FechaFin.AddMinutes(2);
             }
+
+            // Marcamos la entidad como modificada para que EF emita un UPDATE con WHERE Version = @old,
+            // garantizando que dos pujas concurrentes no puedan ambas persistirse.
+            UltimaPujaFecha = nuevaPuja.FechaPuja;
 
             _pujas.Add(nuevaPuja);
         }

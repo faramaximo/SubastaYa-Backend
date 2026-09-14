@@ -110,6 +110,7 @@ builder.Services.AddCors(options => {
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
+              .WithExposedHeaders("ETag") // Permitir que JS lea el ETag de concurrencia
               .AllowCredentials();
     });
 });

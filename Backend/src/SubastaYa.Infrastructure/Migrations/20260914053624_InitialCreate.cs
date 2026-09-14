@@ -16,28 +16,6 @@ namespace SubastaYa.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "AuditoriasLog",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Entidad = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    EntidadId = table.Column<int>(type: "int", nullable: false),
-                    Accion = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UsuarioId = table.Column<int>(type: "int", nullable: true),
-                    DetalleJson = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AuditoriasLog", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "Categorias",
                 columns: table => new
                 {
@@ -66,11 +44,45 @@ namespace SubastaYa.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Nombre = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FechaRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    FechaRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EmailVerificado = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    TokenVerificacionHash = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenVerificacionExpiraUtc = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    TokenRecuperacionHash = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenRecuperacionExpiraUtc = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "AuditoriasLog",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Entidad = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntidadId = table.Column<int>(type: "int", nullable: false),
+                    Accion = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: true),
+                    DetalleJson = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditoriasLog", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AuditoriasLog_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -83,7 +95,7 @@ namespace SubastaYa.Infrastructure.Migrations
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
                     SaldoTotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     SaldoRetenido = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Version = table.Column<DateTime>(type: "timestamp(6)", rowVersion: true, nullable: false)
+                    Version = table.Column<Guid>(type: "char(36)", nullable: false, defaultValueSql: "(UUID())", collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -116,6 +128,7 @@ namespace SubastaYa.Infrastructure.Migrations
                     FechaInicio = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FechaFin = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Estado = table.Column<int>(type: "int", nullable: false),
+                    UltimaPujaFecha = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     Version = table.Column<DateTime>(type: "timestamp(6)", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
@@ -172,7 +185,8 @@ namespace SubastaYa.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     BilleteraId = table.Column<int>(type: "int", nullable: false),
-                    Tipo = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Monto = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     SubastaId = table.Column<int>(type: "int", nullable: true)
@@ -195,6 +209,11 @@ namespace SubastaYa.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AuditoriasLog_UsuarioId",
+                table: "AuditoriasLog",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Billeteras_UsuarioId",
                 table: "Billeteras",
                 column: "UsuarioId",
@@ -214,6 +233,11 @@ namespace SubastaYa.Infrastructure.Migrations
                 name: "IX_Subastas_CategoriaId",
                 table: "Subastas",
                 column: "CategoriaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Subastas_Estado_FechaFin",
+                table: "Subastas",
+                columns: new[] { "Estado", "FechaFin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subastas_VendedorId",

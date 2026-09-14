@@ -1,4 +1,4 @@
-﻿using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auctions.Queries;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Domain.Entities;
@@ -35,7 +35,8 @@ namespace SubastaYa.Application.UseCases.Auctions.Handlers
                 FechaFin = subasta.FechaFin,
                 Estado = subasta.Estado,
                 HoraServidor = DateTime.UtcNow,
-                Pujas = subasta.Pujas.Select(p => new PujaInfoDto(p.Id, p.CompradorId, p.Monto, p.FechaPuja)).ToList()
+                Pujas = subasta.Pujas.Select(p => new PujaInfoDto(p.Id, p.CompradorId, p.Monto, p.FechaPuja)).ToList(),
+                Version = subasta.Version
             };
 
             return dto;
