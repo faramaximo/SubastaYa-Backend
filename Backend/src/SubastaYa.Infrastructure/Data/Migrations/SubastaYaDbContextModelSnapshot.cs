@@ -8,7 +8,7 @@ using SubastaYa.Infrastructure.Data;
 
 #nullable disable
 
-namespace SubastaYa.Infrastructure.Migrations
+namespace SubastaYa.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(SubastaYaDbContext))]
     partial class SubastaYaDbContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace SubastaYa.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -41,11 +41,10 @@ namespace SubastaYa.Infrastructure.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("Version")
+                    b.Property<DateTime>("Version")
                         .IsConcurrencyToken()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.HasKey("Id");
 

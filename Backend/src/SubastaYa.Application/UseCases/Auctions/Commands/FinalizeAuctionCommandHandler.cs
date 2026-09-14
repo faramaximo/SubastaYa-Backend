@@ -32,7 +32,7 @@ public class FinalizeAuctionCommandHandler
         _auditService = auditService;
     }
 
-    public async Task Handle(FinalizeAuctionCommand command, CancellationToken cancellationToken = default)
+    public async Task<bool> Handle(FinalizeAuctionCommand command, CancellationToken cancellationToken = default)
     {
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
@@ -42,14 +42,16 @@ public class FinalizeAuctionCommandHandler
             if (subasta is null)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return;
+                return false;
             }
 
-            // Si ya no está en un estado liquidable, salimos sin error
-            if (subasta.Estado != EstadoSubasta.Activa && subasta.Estado != EstadoSubasta.Programada)
+            // La verificación se repite dentro de la transacción para no liquidar una
+            // subasta que fue extendida por anti-sniping después de la consulta del worker.
+            if ((subasta.Estado != EstadoSubasta.Activa && subasta.Estado != EstadoSubasta.Programada) ||
+                subasta.FechaFin > DateTime.UtcNow)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return;
+                return false;
             }
 
             var pujaGanadora = subasta.Pujas
@@ -61,11 +63,11 @@ public class FinalizeAuctionCommandHandler
                 var billeteraComprador = await _walletRepository.GetByUserIdAsync(pujaGanadora.CompradorId);
                 var billeteraVendedor = await _walletRepository.GetByUserIdAsync(subasta.VendedorId);
 
-                // Si alguna billetera falta o no hay saldo retenido suficiente, rollback completo
+                // Una puja ganadora debe tener sus fondos retenidos. No se deja la
+                // subasta activa silenciosamente: la excepción se registra en el worker.
                 if (billeteraComprador is null || billeteraVendedor is null || billeteraComprador.SaldoRetenido < pujaGanadora.Monto)
                 {
-                    await _unitOfWork.RollbackAsync(cancellationToken);
-                    return;
+                    throw new DomainException("No se puede liquidar la subasta: faltan billeteras o fondos retenidos del ganador.");
                 }
 
                 // Descontar saldo retenido y total al comprador
@@ -121,6 +123,7 @@ public class FinalizeAuctionCommandHandler
 
                 // Notificar en tiempo real
                 await _notifier.NotificarSubastaFinalizadaAsync(subasta.Id, pujaGanadora.CompradorId, pujaGanadora.Monto);
+                return true;
             }
             else
             {
@@ -147,6 +150,7 @@ public class FinalizeAuctionCommandHandler
                 await _unitOfWork.CommitAsync(cancellationToken);
 
                 await _notifier.NotificarSubastaFinalizadaAsync(subasta.Id, null, 0);
+                return true;
             }
         }
         catch (Exception)

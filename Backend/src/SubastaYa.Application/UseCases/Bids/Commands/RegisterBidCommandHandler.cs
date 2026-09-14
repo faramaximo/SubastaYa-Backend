@@ -33,39 +33,58 @@ public class RegisterBidCommandHandler
 
     public async Task<PujaResponseDto> Handle(RegisterBidCommand command)
     {
-        var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)
-            ?? throw new DomainException("La subasta especificada no existe.");
+        await _unitOfWork.BeginTransactionAsync();
+        PujaResponseDto response;
 
-        if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
-            throw new DomainException("La subasta no se encuentra activa o ya ha finalizado.");
-
-        if (subasta.VendedorId == command.UsuarioId)
-            throw new DomainException("El vendedor no puede pujar en su propia subasta.");
-
-        var pujaLiderAnterior = subasta.Pujas
-            .OrderByDescending(p => p.Monto)
-            .FirstOrDefault();
-
-        var montoMinimoRequerido = pujaLiderAnterior is null
-            ? subasta.PrecioBase
-            : pujaLiderAnterior.Monto + subasta.IncrementoMinimo;
-
-        if (command.Monto < montoMinimoRequerido)
-            throw new DomainException($"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
-
-        var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId)
-            ?? throw new DomainException("El usuario no posee una billetera virtual activa.");
-
-        if (billeteraNuevoOfertante.SaldoDisponible < command.Monto)
-            throw new DomainException($"Saldo insuficiente en la billetera. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, Requerido: ${command.Monto}.");
-
-        if (pujaLiderAnterior is not null)
+        try
         {
-            var billeteraLiderAnterior = await _walletRepository.GetByUserIdAsync(pujaLiderAnterior.CompradorId);
+            var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)
+                ?? throw new DomainException("La subasta especificada no existe.");
 
-            if (billeteraLiderAnterior is not null)
+            if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
+                throw new DomainException("La subasta no se encuentra activa o ya ha finalizado.");
+
+            if (subasta.VendedorId == command.UsuarioId)
+                throw new DomainException("El vendedor no puede pujar en su propia subasta.");
+
+            var pujaLiderAnterior = subasta.Pujas
+                .OrderByDescending(p => p.Monto)
+                .FirstOrDefault();
+
+            var montoMinimoRequerido = pujaLiderAnterior is null
+                ? subasta.PrecioBase
+                : pujaLiderAnterior.Monto + subasta.IncrementoMinimo;
+
+            if (command.Monto < montoMinimoRequerido)
             {
+                throw new DomainException(
+                    $"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
+            }
+
+            var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId)
+                ?? throw new DomainException("El usuario no posee una billetera virtual activa.");
+
+            var esMejoraDelMismoLider = pujaLiderAnterior?.CompradorId == command.UsuarioId;
+            var montoARetener = esMejoraDelMismoLider
+                ? command.Monto - pujaLiderAnterior!.Monto
+                : command.Monto;
+
+            if (billeteraNuevoOfertante.SaldoDisponible < montoARetener)
+            {
+                throw new DomainException(
+                    $"Saldo insuficiente. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, " +
+                    $"requerido: ${montoARetener}.");
+            }
+
+            // Si otro usuario era líder, se libera su garantía y se registra el movimiento.
+            if (pujaLiderAnterior is not null && !esMejoraDelMismoLider)
+            {
+                var billeteraLiderAnterior =
+                    await _walletRepository.GetByUserIdAsync(pujaLiderAnterior.CompradorId)
+                    ?? throw new DomainException("El líder anterior no posee una billetera virtual activa.");
+
                 billeteraLiderAnterior.LiberarFondos(pujaLiderAnterior.Monto);
+
                 await _ledgerRepository.AddAsync(new TransaccionLedger
                 {
                     BilleteraId = billeteraLiderAnterior.Id,
@@ -75,59 +94,67 @@ public class RegisterBidCommandHandler
                     SubastaId = subasta.Id
                 });
             }
+
+            // Si el mismo líder mejora su oferta, sólo se inmoviliza la diferencia.
+            billeteraNuevoOfertante.RetenerFondos(montoARetener);
+
+            await _ledgerRepository.AddAsync(new TransaccionLedger
+            {
+                BilleteraId = billeteraNuevoOfertante.Id,
+                Tipo = TipoTransaccion.Retencion,
+                Monto = montoARetener,
+                Fecha = DateTime.UtcNow,
+                SubastaId = subasta.Id
+            });
+
+            var fechaFinAntes = subasta.FechaFin;
+            subasta.RegistrarPuja(command.UsuarioId, command.Monto);
+
+            var nuevaPuja = subasta.Pujas.MaxBy(p => p.FechaPuja)
+                ?? throw new InvalidOperationException("No se pudo registrar la puja.");
+
+            var antiSnipingActivado = subasta.FechaFin > fechaFinAntes;
+
+            if (antiSnipingActivado)
+            {
+                await _auditService.RegistrarEventoAsync(
+                    entidad: "Subasta",
+                    entidadId: subasta.Id,
+                    accion: "ANTI_SNIPING_ACTIVADO",
+                    usuarioId: command.UsuarioId,
+                    detalle: new
+                    {
+                        subastaId = subasta.Id,
+                        usuarioId = command.UsuarioId,
+                        montoPuja = command.Monto,
+                        fechaFinAnterior = fechaFinAntes,
+                        nuevaFechaFin = subasta.FechaFin,
+                        segundosExtension = (subasta.FechaFin - fechaFinAntes).TotalSeconds,
+                        motivo = "Oferta recibida en los últimos 60 segundos de la subasta."
+                    });
+            }
+
+            // Puja, billeteras, Ledger y auditoría se persisten juntos.
+            await _unitOfWork.SaveChangesAsync();
+
+            response = new PujaResponseDto(
+                nuevaPuja.Id,
+                subasta.Id,
+                command.UsuarioId,
+                command.Monto,
+                nuevaPuja.FechaPuja,
+                subasta.FechaFin,
+                antiSnipingActivado);
+
+            await _unitOfWork.CommitAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
         }
 
-        billeteraNuevoOfertante.RetenerFondos(command.Monto);
-        await _ledgerRepository.AddAsync(new TransaccionLedger
-        {
-            BilleteraId = billeteraNuevoOfertante.Id,
-            Tipo = TipoTransaccion.Retencion,
-            Monto = command.Monto,
-            Fecha = DateTime.UtcNow,
-            SubastaId = subasta.Id
-        });
-
-        var fechaFinAntes = subasta.FechaFin;
-        subasta.RegistrarPuja(command.UsuarioId, command.Monto);
-        var nuevaPuja = subasta.Pujas.MaxBy(p => p.FechaPuja)
-            ?? throw new InvalidOperationException("No se pudo registrar la puja.");
-
-        var antiSnipingActivado = subasta.FechaFin > fechaFinAntes;
-        if (antiSnipingActivado)
-        {
-            await _auditService.RegistrarEventoAsync(
-                entidad: "Subasta",
-                entidadId: subasta.Id,
-                accion: "ANTI_SNIPING_ACTIVADO",
-                usuarioId: command.UsuarioId,
-                detalle: new
-                {
-                    subastaId = subasta.Id,
-                    usuarioId = command.UsuarioId,
-                    montoPuja = command.Monto,
-                    fechaFinAnterior = fechaFinAntes,
-                    nuevaFechaFin = subasta.FechaFin,
-                    segundosExtension = (subasta.FechaFin - fechaFinAntes).TotalSeconds,
-                    motivo = "Oferta recibida en los últimos 60 segundos de la subasta."
-                }
-            );
-        }
-
-        // Confirmamos de manera atómica (puja + billetera + ledger + auditoría si aplicó)
-        // La colisión de concurrencia optimista (DbUpdateConcurrencyException) es capturada
-        // globalmente por el ExceptionMiddleware para retornar HTTP 409 y registrar AuditoriaLog.
-        await _unitOfWork.SaveChangesAsync();
-
-        var response = new PujaResponseDto(
-            nuevaPuja.Id,
-            subasta.Id,
-            command.UsuarioId,
-            command.Monto,
-            nuevaPuja.FechaPuja,
-            subasta.FechaFin,
-            antiSnipingActivado);
-
-        // Notificación en tiempo real por SignalR
+        // Sólo se notifica después de confirmar la transacción.
         await _notifier.NotificarNuevaPujaAsync(response);
 
         return response;

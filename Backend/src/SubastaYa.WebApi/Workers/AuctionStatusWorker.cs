@@ -32,10 +32,11 @@ namespace SubastaYa.WebApi.Workers
                         var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
                         var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>();
                         bool huboCambios = false;
+                        var ahoraUtc = DateTime.UtcNow;
 
                         // 1. ARRANCAR SUBASTAS PROGRAMADAS
                         var subastasParaActivar = await context.Subastas
-                            .Where(s => s.Estado == EstadoSubasta.Programada && s.FechaInicio <= DateTime.UtcNow && s.FechaFin > DateTime.UtcNow)
+                            .Where(s => s.Estado == EstadoSubasta.Programada && s.FechaInicio <= ahoraUtc && s.FechaFin > ahoraUtc)
                             .ToListAsync(stoppingToken);
 
                         foreach (var subasta in subastasParaActivar)
@@ -55,7 +56,7 @@ namespace SubastaYa.WebApi.Workers
 
                         // 2. OBTENER IDS DE SUBASTAS VENCIDAS PARA LIQUIDAR
                         var subastasVencidasIds = await context.Subastas
-                            .Where(s => (s.Estado == EstadoSubasta.Activa || s.Estado == EstadoSubasta.Programada) && s.FechaFin <= DateTime.UtcNow)
+                            .Where(s => (s.Estado == EstadoSubasta.Activa || s.Estado == EstadoSubasta.Programada) && s.FechaFin <= ahoraUtc)
                             .Select(s => s.Id)
                             .ToListAsync(stoppingToken);
 
@@ -66,12 +67,20 @@ namespace SubastaYa.WebApi.Workers
                             {
                                 using var finalizeScope = _scopeFactory.CreateScope();
                                 var finalizeHandler = finalizeScope.ServiceProvider.GetRequiredService<FinalizeAuctionCommandHandler>();
-                                await finalizeHandler.Handle(new FinalizeAuctionCommand(subastaId), stoppingToken);
-                                _logger.LogInformation($"🏁 Subasta {subastaId} procesada por FinalizeAuctionCommandHandler.");
+                                var fueLiquidada = await finalizeHandler.Handle(new FinalizeAuctionCommand(subastaId), stoppingToken);
+
+                                if (fueLiquidada)
+                                {
+                                    _logger.LogInformation("🏁 Subasta {SubastaId} liquidada correctamente.", subastaId);
+                                }
+                                else
+                                {
+                                    _logger.LogDebug("La subasta {SubastaId} dejó de ser liquidable antes de adquirir el bloqueo de transacción.", subastaId);
+                                }
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, $"❌ Error liquidando subasta {subastaId}.");
+                                _logger.LogError(ex, "❌ Error liquidando subasta {SubastaId}.", subastaId);
                             }
                         }
 

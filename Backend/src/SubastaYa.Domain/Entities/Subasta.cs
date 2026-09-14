@@ -18,7 +18,7 @@ namespace SubastaYa.Domain.Entities
         public DateTime FechaFin { get; private set; }
         public EstadoSubasta Estado { get; private set; }
 
-
+        [Timestamp]
         public byte[] Version { get; private set; } = Array.Empty<byte>(); // EF Core usará esto para la concurrencia
 
         // Navegación
