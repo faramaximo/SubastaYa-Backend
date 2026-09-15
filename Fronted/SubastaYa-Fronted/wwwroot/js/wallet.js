@@ -59,6 +59,14 @@ async function fetchWalletBalance() {
                 Authorization: `Bearer ${token}`
             }
         });
+        if (response.status === 404) {
+            // La billetera aún no existe (se crea con el primer depósito)
+            document.getElementById('saldo-total').textContent = `$0.00`;
+            document.getElementById('saldo-retenido').textContent = `$0.00`;
+            document.getElementById('saldo-disponible').textContent = `$0.00`;
+            return;
+        }
+
         if (!response.ok) throw new Error('Error al consultar saldo');
 
         const data = await response.json();
@@ -84,10 +92,16 @@ async function fetchWalletTransactions() {
                 Authorization: `Bearer ${token}`
             }
         });
+        const tbody = document.getElementById('ledger-table-body');
+
+        if (response.status === 404) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #a1a5b7;">No hay transacciones registradas.</td></tr>';
+            return;
+        }
+
         if (!response.ok) throw new Error('Error al consultar historial');
 
         const transactions = await response.json();
-        const tbody = document.getElementById('ledger-table-body');
 
         if (!transactions || transactions.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #a1a5b7;">No hay transacciones registradas.</td></tr>';
@@ -120,6 +134,12 @@ async function handleDepositSubmit(e) {
         return;
     }
 
+    if (montoNum > 10000000) {
+        msgDiv.textContent = 'El monto debe ser menor a $10.000.000.';
+        msgDiv.style.color = '#f1416c';
+        return;
+    }
+
     msgDiv.textContent = 'Procesando...';
     msgDiv.style.color = '#a1a5b7';
 
@@ -144,7 +164,21 @@ async function handleDepositSubmit(e) {
         } else {
             const errorText = await response.text();
             console.warn('Respuesta del servidor:', errorText);
-            msgDiv.textContent = errorText || 'Error al procesar el depósito.';
+            
+            let finalMsg = errorText || 'Error al procesar el depósito.';
+            try {
+                const parsed = JSON.parse(errorText);
+                
+                // Si es un error de validación de modelo (400 Bad Request con .errors)
+                if (parsed.errors && typeof parsed.errors === 'object') {
+                    const firstKey = Object.keys(parsed.errors)[0];
+                    finalMsg = parsed.errors[firstKey][0];
+                } else {
+                    finalMsg = parsed.detail || parsed.error || parsed.mensaje || parsed.title || finalMsg;
+                }
+            } catch (e) {}
+
+            msgDiv.textContent = finalMsg;
             msgDiv.style.color = '#f1416c';
         }
     } catch (err) {

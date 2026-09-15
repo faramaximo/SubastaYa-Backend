@@ -333,20 +333,9 @@ document.getElementById('btnOfertar').onclick = async () => {
         const resultado = await r.json();
         showToast('success', '¡Puja realizada con éxito!');
 
-        // Actualizar saldo disponible tras la puja
-        await consultarSaldoUsuario();
-
-        const extendido = resultado?.tiempoExtendido ?? resultado?.TiempoExtendido;
-        const nuevaFechaFin = resultado?.nuevaFechaFin || resultado?.NuevaFechaFin;
-        if (nuevaFechaFin) {
-            const timerContainer = document.getElementById('sala-detailed-timer');
-            if (timerContainer) timerContainer.setAttribute('data-fin', nuevaFechaFin);
-        }
-        if (extendido) {
-            mostrarNotificacionExtension();
-        }
-        await mostrarSala(currentSalaId);
-        actualizarTemporizador();
+        // La actualización de los datos en pantalla (saldo, estado de la subasta, 
+        // temporizadores y anti-sniping) se delega por completo al evento 
+        // "NuevaPujaRegistrada" de SignalR para evitar duplicar las peticiones HTTP.
     } catch (err) {
         showToast('danger', err.message);
     } finally {
@@ -384,7 +373,20 @@ function showToast(type, message) {
     const toastEl = document.createElement('div');
     const toastId = window.crypto?.randomUUID?.() ?? `toast-${Date.now()}-${++toastSequence}`;
     toastEl.id = toastId;
-    toastEl.className = 'toast align-items-center text-white bg-' + (type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'dark') + ' border-0';
+
+    let bgClass = 'bg-dark';
+    let textClass = 'text-white';
+    
+    if (type === 'success') {
+        bgClass = 'bg-success';
+    } else if (type === 'danger') {
+        bgClass = 'bg-danger';
+    } else if (type === 'warning') {
+        bgClass = 'bg-warning';
+        textClass = 'text-dark';
+    }
+
+    toastEl.className = `toast align-items-center ${textClass} ${bgClass} border-0`;
 
     const content = document.createElement('div');
     content.className = 'd-flex';
@@ -393,7 +395,9 @@ function showToast(type, message) {
     body.textContent = message || 'Error al procesar la oferta';
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
-    closeButton.className = 'btn-close btn-close-white ms-auto me-2 mt-2';
+    // Si el texto es oscuro (warning), usamos el botón de cerrar oscuro por defecto.
+    const closeBtnClass = textClass === 'text-dark' ? 'btn-close' : 'btn-close btn-close-white';
+    closeButton.className = `${closeBtnClass} ms-auto me-2 mt-2`;
     closeButton.dataset.bsDismiss = 'toast';
     closeButton.setAttribute('aria-label', 'Cerrar');
     content.append(body, closeButton);
