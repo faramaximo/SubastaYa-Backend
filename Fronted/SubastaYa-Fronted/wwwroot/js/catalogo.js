@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     obtenerCatalogo();
     conectarSignalR().catch(error => console.error("No se pudo conectar al tiempo real:", error));
     iniciarTemporizadorGlobal();
-    iniciarTemporizadorSalaDetallada();
     // Asegurar vista por defecto: catálogo visible, sala oculta
     const salaEl = document.getElementById('sala-view');
     const catalogEl = document.getElementById('catalogo-view') || document.getElementById('catalog-view');
@@ -173,7 +172,7 @@ function renderizarTarjeta(subasta, contenedor) {
                         </div>
                         <div class="text-end">
                             <span class="info-label dynamic-label">Calculando...</span>
-                            <span class="info-value live-timer" data-inicio="${inicioStr}" data-fin="${finStr}">
+                            <span class="info-value live-timer" data-inicio="${inicioStr}" data-fin="${finStr}" data-estado="${subasta.estado ?? ''}" data-ofertas="${subasta.ofertaMasAlta ? '1' : '0'}">
                                 --:--:--
                             </span>
                         </div>
@@ -184,14 +183,6 @@ function renderizarTarjeta(subasta, contenedor) {
         </div>
     `;
 }
-
-// Delegación de eventos: abrir sala al hacer click en cualquier botón .ver-sala
-
-
-// Botón volver al catálogo: obtiene el estado actualizado antes de mostrarlo.
-
-
-
 
 // Toast helper (Bootstrap)
 function showToast(type, message, title) {
@@ -241,8 +232,8 @@ function renderizarDestacada(subasta, contenedor) {
                         <span class="f-value f-timer live-timer timer-highlight" data-inicio="${subasta.fechaInicio || ''}" data-fin="${subasta.fechaFin || ''}">
                             --:--:--
                         </span>
-                        <!-- Contenedor oculto para la duración. -->
-                        <div class="duracion-subasta mt-1" style="font-size: 0.85rem; color: #a29bfe; display: none; font-weight: 600;"></div>
+                        <!-- Contenedor oculto para la duración -->
+                        <div class="duracion-subasta mt-1" style="font-size: 0.85rem; display: none; font-weight: 600;"></div>
                     </div>
                 </div>
                <a href="/pages/sala.html?id=${subasta.id}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold">Ofertar Ahora</a>
@@ -391,12 +382,23 @@ function iniciarTemporizadorGlobal() {
                 if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) duracionDiv.style.display = "none";
             } 
             else {
-                // ESTADO: FINALIZADA (Gris)
+                // ESTADO: FINALIZADA O DESIERTA
+                const estadoAttr = timer.getAttribute("data-estado");
+                const ofertasAttr = timer.getAttribute("data-ofertas");
+                const esDesierta = estadoAttr === "3" || ofertasAttr === "0";
+
                 label.innerText = "Estado";
-                timer.className = timer.classList.contains('f-timer') 
-                    ? "f-value f-timer live-timer text-white-50" 
-                    : "info-value live-timer text-white-50 fw-bold";
-                timer.innerText = "Finalizada";
+                if (esDesierta) {
+                    timer.className = timer.classList.contains('f-timer') 
+                        ? "f-value f-timer live-timer text-secondary" 
+                        : "info-value live-timer text-secondary fw-bold";
+                    timer.innerText = "Desierta";
+                } else {
+                    timer.className = timer.classList.contains('f-timer') 
+                        ? "f-value f-timer live-timer text-secondary" 
+                        : "info-value live-timer text-secondary fw-bold";
+                    timer.innerText = "Finalizada";
+                }
 
                 // Ocultamos la duración
                 if (duracionDiv && duracionDiv.classList.contains('duracion-subasta')) duracionDiv.style.display = "none";

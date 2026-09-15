@@ -2,11 +2,7 @@
    SALA DE SUBASTAS - ESTILOS ESPECÍFICOS
    ========================================================================== */
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-principal);
-    color: var(--text-principal);
-}
+/* font-family se hereda del :root global declarado en catalogo.css */
 
 .auction-room {
     max-width: 1180px;
@@ -22,7 +18,7 @@ body {
 
 .auction-room__image {
     aspect-ratio: 1 / .78;
-    background: var(--bg-principal);
+    background: var(--bg-contenedor);
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -83,7 +79,7 @@ body {
 
 .sala-img-wrapper {
     width: 100%;
-    background-color: #ffffff;
+    background-color: var(--bg-contenedor);
     border-radius: 12px;
     overflow: hidden;
     aspect-ratio: 1 / 0.85;
@@ -102,10 +98,26 @@ body {
     font-size: 1rem;
     line-height: 1.6;
     word-wrap: break-word;
+    color: var(--text-secundario);
 }
 
+/* ---- Timer card ---- */
 .sala-timer-card {
     border-radius: 8px;
+    background-color: var(--bg-contenedor) !important;
+    border: 1px solid var(--borde) !important;
+    color: var(--text-principal) !important;
+}
+
+.sala-timer-card .card-header {
+    background: transparent !important;
+    color: var(--text-secundario) !important;
+}
+
+/* Los spans con text-dark de Bootstrap deben heredar el tema */
+.sala-timer-card .text-dark,
+.sala-timer-card [class*="text-dark"] {
+    color: var(--text-principal) !important;
 }
 
 .sala-timer-header {
@@ -116,17 +128,18 @@ body {
     font-size: 0.55rem;
     letter-spacing: 1px;
     margin-top: 4px;
+    color: var(--text-secundario) !important;
 }
 
 .sala-timer-separator {
     width: 1px;
     height: 20px;
-    background-color: #dee2e6;
+    background-color: var(--borde);
 }
 
 .sala-timer-progress-track {
     height: 3px;
-    background-color: #e9ecef;
+    background-color: var(--borde);
     width: 100%;
     border-bottom-left-radius: inherit;
     border-bottom-right-radius: inherit;
@@ -135,14 +148,43 @@ body {
 
 .sala-timer-progress-bar {
     height: 100%;
-    background-color: #0d6efd;
+    background-color: var(--accent-color);
     width: 0%;
     transition: width 1s linear;
 }
 
+/* ---- Info card ---- */
 .sala-info-card {
     border-radius: 8px;
     border: 1px solid var(--borde);
+    background-color: var(--bg-contenedor) !important;
+    color: var(--text-principal) !important;
+}
+
+/* Neutralizar clases Bootstrap hardcodeadas dentro de las cards */
+.sala-info-card .text-dark,
+.sala-info-card [class*="text-dark"],
+.sala-info-card .border-light-subtle {
+    color: var(--text-principal) !important;
+    border-color: var(--borde) !important;
+}
+
+.sala-info-card .text-muted {
+    color: var(--text-secundario) !important;
+}
+
+/* Input de puja — fondo y texto reactivo al tema */
+.sala-bid-input,
+.sala-info-card .form-control {
+    background-color: var(--bg-principal) !important;
+    color: var(--text-principal) !important;
+    border-color: var(--borde) !important;
+}
+
+.sala-info-card .input-group-text {
+    background-color: var(--bg-contenedor) !important;
+    border-color: var(--borde) !important;
+    color: var(--text-secundario) !important;
 }
 
 .sala-badge-status {
@@ -150,15 +192,36 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Badge de subasta desierta con alto contraste en tema claro y oscuro */
+.sala-badge-desierta {
+    background-color: rgba(140, 146, 172, 0.16) !important;
+    border: 1px solid var(--borde) !important;
+    color: var(--text-principal) !important;
+}
+
+body[data-theme="dark"] .sala-badge-desierta {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    color: #f1f3f5 !important;
+}
+
+.sala-badge-finalizada {
+    background-color: rgba(108, 117, 125, 0.2) !important;
+    border: 1px solid var(--borde) !important;
+    color: var(--text-principal) !important;
+}
+
 .sala-title {
     font-size: 1.4rem;
     letter-spacing: -0.5px;
     line-height: 1.2;
+    color: var(--text-principal);
 }
 
 .sala-current-price-label {
     font-size: 0.65rem;
     letter-spacing: 1px;
+    color: var(--text-secundario) !important;
 }
 
 .sala-current-price {
@@ -168,10 +231,12 @@ body {
 
 .sala-leader-info {
     font-size: 0.8rem;
+    color: var(--text-principal);
 }
 
 .sala-minimum-info {
     font-size: 0.75rem;
+    color: var(--text-secundario);
 }
 
 .sala-personal-status {
@@ -194,6 +259,7 @@ body {
 
 .sala-bid-label {
     font-size: 0.8rem;
+    color: var(--text-principal);
 }
 
 .sala-bid-input {
@@ -210,6 +276,16 @@ body {
 
 .sala-bid-hint {
     font-size: 0.65rem;
+    color: var(--text-secundario);
+}
+
+/* Historial de pujas — legible en ambos temas */
+.auction-room__history .list-group-item .fw-semibold {
+    color: var(--text-principal);
+}
+
+.auction-room__history .list-group-item .text-muted {
+    color: var(--text-secundario) !important;
 }
 
 .toast-container-fixed {
@@ -217,4 +293,66 @@ body {
     right: 20px;
     bottom: 20px;
     z-index: 2000;
+}
+
+/* ==========================================================================
+   ADAPTABILIDAD RESPONSIVE (MÓVIL <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Apilamiento vertical estricto del visualizador del lote y consola de pujas */
+    .auction-room {
+        padding: 0 8px;
+        width: 100%;
+    }
+
+    .sala-img-wrapper {
+        aspect-ratio: 1 / 0.9;
+        max-height: 320px;
+    }
+
+    .sala-img-element {
+        padding: 0.5rem;
+    }
+
+    .sala-desc-text {
+        font-size: 0.92rem;
+    }
+
+    .sala-title {
+        font-size: 1.25rem;
+    }
+
+    .sala-current-price {
+        font-size: 1.7rem;
+    }
+
+    .sala-timer-card {
+        margin-top: 6px;
+    }
+
+    #sala-detailed-timer .fs-4 {
+        font-size: 1.25rem !important;
+    }
+
+    .sala-timer-label {
+        font-size: 0.5rem;
+    }
+
+    .sala-timer-separator {
+        height: 16px;
+    }
+
+    .sala-info-card {
+        padding: 1rem !important;
+    }
+
+    .auction-room__history {
+        max-height: 250px;
+    }
+
+    .toast-container-fixed {
+        right: 10px;
+        bottom: 10px;
+        left: 10px;
+    }
 }

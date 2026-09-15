@@ -3,7 +3,7 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. VENTANA FLOTANTE (MODAL OVERLAY Y TARJETA BLANCA)
+   1. VENTANA FLOTANTE (MODAL OVERLAY Y TARJETA — TEMA REACTIVO)
    -------------------------------------------------------------------------- */
 
 /* Fondo oscuro translúcido con desenfoque para ver la página detrás */
@@ -32,10 +32,11 @@
     pointer-events: auto;
 }
 
-/* Tarjeta flotante en color blanco con sombras elegantes */
+/* Tarjeta flotante — usa variables del tema activo */
 .auth-modal-card {
-    background-color: #ffffff !important;
-    color: #111827 !important;
+    background-color: var(--bg-contenedor) !important;
+    color: var(--text-principal) !important;
+    border: 1px solid var(--borde);
     border-radius: 24px;
     padding: 36px 32px;
     width: 100%;
@@ -58,9 +59,9 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    color: #6b7280;
+    background: var(--bg-principal);
+    border: 1px solid var(--borde);
+    color: var(--text-secundario);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -72,29 +73,30 @@
 }
 
 .auth-modal-close:hover {
-    background: #e5e7eb;
-    color: #111827;
+    background: var(--borde);
+    color: var(--text-principal);
     transform: scale(1.05);
 }
 
 .auth-modal-title {
     font-size: 1.85rem;
     font-weight: 800;
-    color: #111827 !important;
+    color: var(--text-principal) !important;
     margin: 0 0 4px;
     letter-spacing: -0.02em;
 }
 
 .auth-modal-subtitle {
     font-size: 0.92rem;
-    color: #6b7280 !important;
+    color: var(--text-secundario) !important;
     margin: 0;
 }
 
 /* Selector de pestañas (Iniciar Sesión / Crear Cuenta) */
 .auth-tabs {
     display: flex;
-    background: #f3f4f6;
+    background: var(--bg-principal);
+    border: 1px solid var(--borde);
     border-radius: 12px;
     padding: 4px;
     margin: 20px 0 22px;
@@ -109,19 +111,20 @@
     border-radius: 9px;
     font-size: 0.88rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--text-secundario);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .auth-tab-btn:hover {
-    color: #111827;
+    color: var(--text-principal);
 }
 
 .auth-tab-btn.active {
-    background: #ffffff;
-    color: #111827;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    background: var(--bg-contenedor);
+    color: var(--text-principal);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--borde);
 }
 
 /* --------------------------------------------------------------------------
@@ -130,7 +133,7 @@
 
 .form-label-custom {
     font-size: 0.85rem;
-    color: #374151 !important;
+    color: var(--text-secundario) !important;
     font-weight: 600;
     margin-bottom: 0.4rem;
     display: block;
@@ -138,9 +141,9 @@
 
 .auth-input,
 .login-card .form-control {
-    background-color: #f9fafb !important;
-    border: 1.5px solid #e5e7eb !important;
-    color: #111827 !important;
+    background-color: var(--bg-principal) !important;
+    border: 1.5px solid var(--borde) !important;
+    color: var(--text-principal) !important;
     padding: 12px 14px;
     border-radius: 12px;
     font-size: 0.95rem;
@@ -150,16 +153,22 @@
 
 .auth-input:focus,
 .login-card .form-control:focus {
-    background-color: #ffffff !important;
-    border-color: #4f46e5 !important;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12) !important;
-    color: #111827 !important;
+    background-color: var(--bg-contenedor) !important;
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.1) !important;
+    color: var(--text-principal) !important;
     outline: none;
+}
+
+body[data-theme="dark"] .auth-input:focus,
+body[data-theme="dark"] .login-card .form-control:focus {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12) !important;
 }
 
 .auth-input::placeholder,
 .login-card .form-control::placeholder {
-    color: #9ca3af !important;
+    color: var(--text-secundario) !important;
+    opacity: 0.7;
 }
 
 /* --------------------------------------------------------------------------
@@ -168,7 +177,7 @@
 
 .btn-auth-primary,
 .btn-login {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    background: var(--accent-color) !important;
     color: #ffffff !important;
     padding: 13px 20px;
     border-radius: 12px;
@@ -178,18 +187,29 @@
     border: none;
     cursor: pointer;
     margin-top: 10px;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+    box-shadow: 0 4px 14px rgba(0, 82, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s;
     text-align: center;
     text-decoration: none;
     display: inline-block;
 }
 
+body[data-theme="dark"] .btn-auth-primary,
+body[data-theme="dark"] .btn-login {
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+
 .btn-auth-primary:hover,
 .btn-login:hover {
+    background: var(--accent-hover) !important;
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 82, 255, 0.3);
     color: #ffffff !important;
+}
+
+body[data-theme="dark"] .btn-auth-primary:hover,
+body[data-theme="dark"] .btn-login:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 
 .btn-auth-primary:disabled,
@@ -201,7 +221,7 @@
 
 /* Enlaces y botones de navegación rápida */
 .auth-link-secondary {
-    color: #4f46e5;
+    color: var(--accent-color);
     font-size: 0.88rem;
     font-weight: 600;
     text-decoration: none;
@@ -210,14 +230,14 @@
 }
 
 .auth-link-secondary:hover {
-    color: #3730a3;
+    color: var(--accent-hover);
     text-decoration: underline;
 }
 
 .auth-link-btn {
     background: transparent;
     border: none;
-    color: #4f46e5;
+    color: var(--accent-color);
     padding: 0;
     font-size: inherit;
     font-weight: 700;
@@ -226,16 +246,16 @@
 }
 
 .auth-link-btn:hover {
-    color: #3730a3;
+    color: var(--accent-hover);
     text-decoration: underline;
 }
 
 .auth-card-footer {
     margin-top: 1.25rem;
     padding-top: 1rem;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--borde);
     font-size: 0.88rem;
-    color: #6b7280;
+    color: var(--text-secundario);
     text-align: center;
 }
 
@@ -254,41 +274,106 @@ button.auth-link {
     cursor: pointer;
 }
 
-button.auth-button {
-    border: none;
+/* Modal de Confirmación para Cerrar Sesión */
+.logout-modal-card {
+    max-width: 380px;
+    padding: 28px 24px;
+    text-align: center;
+}
+
+.logout-modal-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.logout-modal-text {
+    font-size: 0.95rem;
+    color: var(--text-secundario);
+    margin-bottom: 24px;
+    line-height: 1.45;
+}
+
+.logout-modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-modal-cancel {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--borde);
+    color: var(--text-principal);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.92rem;
     cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-modal-cancel:hover {
+    background: var(--bg-principal);
+    border-color: var(--text-secundario);
+}
+
+.btn-modal-danger {
+    flex: 1;
+    background: #ef4444;
+    border: 1px solid #ef4444;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-modal-danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    transform: translateY(-1px);
 }
 
 /* --------------------------------------------------------------------------
-   4. COMPATIBILIDAD PARA PÁGINAS DEDICADAS (FALLBACK EN BLANCO)
+   4. COMPATIBILIDAD PARA PÁGINAS DEDICADAS (FALLBACK — TEMA REACTIVO)
    -------------------------------------------------------------------------- */
 
 body.auth-page {
-    background-color: #f3f4f6;
-    color: #111827;
+    background-color: var(--bg-principal);
+    color: var(--text-principal);
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    /* font-family se hereda del :root global */
     padding: 20px;
 }
 
 .login-card {
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
+    background-color: var(--bg-contenedor);
+    border: 1px solid var(--borde);
     border-radius: 20px;
     padding: 40px;
     width: 100%;
     max-width: 440px;
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
-    color: #111827;
+    color: var(--text-principal);
 }
 
 .auth-guest-link {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--text-secundario);
     text-decoration: none;
     font-weight: 600;
     display: inline-block;
@@ -297,5 +382,54 @@ body.auth-page {
 }
 
 .auth-guest-link:hover {
-    color: #111827;
+    color: var(--text-principal);
+}
+
+/* ==========================================================================
+   ADAPTABILIDAD RESPONSIVE (MÓVIL <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Modales: Ancho fluido centrado (width: 90%, max-width: 420px) */
+    .auth-modal-overlay {
+        padding: 12px;
+    }
+
+    .auth-modal-card,
+    .logout-modal-card,
+    .login-card {
+        width: 90% !important;
+        max-width: 420px !important;
+        margin: 0 auto;
+        padding: 26px 18px !important;
+        border-radius: 18px;
+    }
+
+    .auth-modal-title {
+        font-size: 1.5rem;
+    }
+
+    .auth-modal-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .auth-tabs {
+        margin: 16px 0 18px;
+    }
+
+    .auth-tab-btn {
+        padding: 7px 8px;
+        font-size: 0.82rem;
+    }
+
+    .auth-input,
+    .login-card .form-control {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    .btn-auth-primary,
+    .btn-login {
+        padding: 11px 16px;
+        font-size: 0.92rem;
+    }
 }

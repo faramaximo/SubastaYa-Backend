@@ -12,8 +12,9 @@ public class RegisterCommandHandler : RegisterUserCommandHandler
         IUsuarioRepository usuarios,
         IUnitOfWork uow,
         IEmailSender emailSender,
-        IConfiguration? configuration = null)
-        : base(usuarios, uow, emailSender, configuration)
+        IConfiguration? configuration = null,
+        Microsoft.Extensions.Logging.ILogger<RegisterUserCommandHandler>? logger = null)
+        : base(usuarios, uow, emailSender, configuration, logger)
     {
     }
 }

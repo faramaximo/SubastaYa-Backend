@@ -1,4 +1,4 @@
-﻿using SubastaYa.Application.Interfaces;
+using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
@@ -38,7 +38,7 @@ public class FinalizeAuctionCommandHandler
 
         try
         {
-            var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId);
+            var subasta = await _auctionRepository.ObtenerPorIdAsync(command.SubastaId);
             if (subasta is null)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
@@ -60,8 +60,8 @@ public class FinalizeAuctionCommandHandler
 
             if (pujaGanadora != null)
             {
-                var billeteraComprador = await _walletRepository.GetByUserIdAsync(pujaGanadora.CompradorId);
-                var billeteraVendedor = await _walletRepository.GetByUserIdAsync(subasta.VendedorId);
+                var billeteraComprador = await _walletRepository.ObtenerPorUsuarioIdAsync(pujaGanadora.CompradorId);
+                var billeteraVendedor = await _walletRepository.ObtenerPorUsuarioIdAsync(subasta.VendedorId);
 
                 // Una puja ganadora debe tener sus fondos retenidos. No se deja la
                 // subasta activa silenciosamente: la excepción se registra en el worker.

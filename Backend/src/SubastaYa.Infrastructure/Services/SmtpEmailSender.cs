@@ -34,11 +34,11 @@ public sealed class SmtpEmailSender : IEmailSender
         var username = _configuration["Email:Username"];
         var rawPassword = _configuration["Email:Password"];
 
-        if (port is not (> 0 and <= 65535) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(rawPassword))
+        if (port is not (> 0 and <= 65535))
         {
-            const string credentialError = "La configuración SMTP está incompleta: verifique 'Email:Port', 'Email:Username' y 'Email:Password' en appsettings.json.";
-            _logger?.LogError(credentialError);
-            throw new InvalidOperationException(credentialError);
+            const string portError = "El puerto SMTP configurado es inválido: debe estar entre 1 y 65535.";
+            _logger?.LogError(portError);
+            throw new InvalidOperationException(portError);
         }
 
         using var message = new MailMessage(sender, recipient, subject, htmlBody)
@@ -51,15 +51,16 @@ public sealed class SmtpEmailSender : IEmailSender
         // 1. Método de entrega en red
         client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
-        // 2. Deshabilitar credenciales por defecto ANTES de asignar las credenciales explícitas
+        // 2. Deshabilitar credenciales por defecto
         client.UseDefaultCredentials = false;
 
-        // 3. Asignar credenciales de autenticación
-        client.Credentials = new NetworkCredential(username, rawPassword);
+        // 3. Asignar credenciales de autenticación si fueron proporcionadas (ej. opcional en Mailpit)
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            client.Credentials = new NetworkCredential(username, rawPassword ?? string.Empty);
+        }
 
-        // 4. Configurar SSL / STARTTLS:
-        // Para Mailtrap en puertos 2525 o 587, se lee 'Email:UseSsl'.
-        // Si es false o no está configurada, client.EnableSsl = false para permitir STARTTLS sin colisión de SSL directo.
+        // 4. Configurar SSL / STARTTLS
         client.EnableSsl = useSsl;
         client.Timeout = 15000;
 

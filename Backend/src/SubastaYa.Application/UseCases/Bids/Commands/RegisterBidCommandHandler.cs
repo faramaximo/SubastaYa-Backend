@@ -38,14 +38,42 @@ public class RegisterBidCommandHandler
 
         try
         {
-            var subasta = await _auctionRepository.GetByIdWithBidsAsync(command.SubastaId)
+            var subasta = await _auctionRepository.ObtenerPorIdAsync(command.SubastaId)
                 ?? throw new ResourceNotFoundException("La subasta especificada no existe.");
 
             if (subasta.Estado != EstadoSubasta.Activa || subasta.FechaFin <= DateTime.UtcNow)
+            {
+                await _auditService.RegistrarYConfirmarEventoAsync(
+                    entidad: "Subasta",
+                    entidadId: subasta.Id,
+                    accion: "PUJA_RECHAZADA",
+                    usuarioId: command.UsuarioId,
+                    detalle: new
+                    {
+                        SubastaId = subasta.Id,
+                        UsuarioId = command.UsuarioId,
+                        MontoIntentado = command.Monto,
+                        Razon = "La subasta no se encuentra activa o ya ha finalizado."
+                    });
                 throw new UnprocessableEntityException("La subasta no se encuentra activa o ya ha finalizado.");
+            }
 
             if (subasta.VendedorId == command.UsuarioId)
+            {
+                await _auditService.RegistrarYConfirmarEventoAsync(
+                    entidad: "Subasta",
+                    entidadId: subasta.Id,
+                    accion: "PUJA_RECHAZADA",
+                    usuarioId: command.UsuarioId,
+                    detalle: new
+                    {
+                        SubastaId = subasta.Id,
+                        UsuarioId = command.UsuarioId,
+                        MontoIntentado = command.Monto,
+                        Razon = "El vendedor no puede pujar en su propia subasta."
+                    });
                 throw new ForbiddenException("El vendedor no puede pujar en su propia subasta.");
+            }
 
             var pujaLiderAnterior = subasta.Pujas
                 .OrderByDescending(p => p.Monto)
@@ -61,11 +89,23 @@ public class RegisterBidCommandHandler
 
             if (command.Monto < montoMinimoRequerido)
             {
+                await _auditService.RegistrarYConfirmarEventoAsync(
+                    entidad: "Subasta",
+                    entidadId: subasta.Id,
+                    accion: "PUJA_RECHAZADA",
+                    usuarioId: command.UsuarioId,
+                    detalle: new
+                    {
+                        SubastaId = subasta.Id,
+                        UsuarioId = command.UsuarioId,
+                        MontoIntentado = command.Monto,
+                        Razon = $"El monto ofertado ({command.Monto}) es inferior al mínimo requerido ({montoMinimoRequerido})."
+                    });
                 throw new UnprocessableEntityException(
                     $"El monto ofertado (${command.Monto}) debe ser al menos de ${montoMinimoRequerido}.");
             }
 
-            var billeteraNuevoOfertante = await _walletRepository.GetByUserIdAsync(command.UsuarioId)
+            var billeteraNuevoOfertante = await _walletRepository.ObtenerPorUsuarioIdAsync(command.UsuarioId)
                 ?? throw new ResourceNotFoundException("La billetera del usuario no existe.");
 
             var esMejoraDelMismoLider = pujaLiderAnterior?.CompradorId == command.UsuarioId;
@@ -75,6 +115,18 @@ public class RegisterBidCommandHandler
 
             if (billeteraNuevoOfertante.SaldoDisponible < montoARetener)
             {
+                await _auditService.RegistrarYConfirmarEventoAsync(
+                    entidad: "Subasta",
+                    entidadId: subasta.Id,
+                    accion: "PUJA_RECHAZADA",
+                    usuarioId: command.UsuarioId,
+                    detalle: new
+                    {
+                        SubastaId = subasta.Id,
+                        UsuarioId = command.UsuarioId,
+                        MontoIntentado = command.Monto,
+                        Razon = $"Saldo insuficiente. Disponible: {billeteraNuevoOfertante.SaldoDisponible}, requerido: {montoARetener}."
+                    });
                 throw new UnprocessableEntityException(
                     $"Saldo insuficiente. Disponible: ${billeteraNuevoOfertante.SaldoDisponible}, " +
                     $"requerido: ${montoARetener}.");
@@ -84,12 +136,12 @@ public class RegisterBidCommandHandler
             if (pujaLiderAnterior is not null && !esMejoraDelMismoLider)
             {
                 var billeteraLiderAnterior =
-                    await _walletRepository.GetByUserIdAsync(pujaLiderAnterior.CompradorId)
+                    await _walletRepository.ObtenerPorUsuarioIdAsync(pujaLiderAnterior.CompradorId)
                     ?? throw new ResourceNotFoundException("La billetera del líder anterior no existe.");
 
                 billeteraLiderAnterior.LiberarFondos(pujaLiderAnterior.Monto);
 
-                await _ledgerRepository.AddAsync(new TransaccionLedger
+                await _ledgerRepository.AgregarAsync(new TransaccionLedger
                 {
                     BilleteraId = billeteraLiderAnterior.Id,
                     Tipo = TipoTransaccion.Liberacion,
@@ -102,7 +154,7 @@ public class RegisterBidCommandHandler
             // Si el mismo líder mejora su oferta, sólo se inmoviliza la diferencia.
             billeteraNuevoOfertante.RetenerFondos(montoARetener);
 
-            await _ledgerRepository.AddAsync(new TransaccionLedger
+            await _ledgerRepository.AgregarAsync(new TransaccionLedger
             {
                 BilleteraId = billeteraNuevoOfertante.Id,
                 Tipo = TipoTransaccion.Retencion,

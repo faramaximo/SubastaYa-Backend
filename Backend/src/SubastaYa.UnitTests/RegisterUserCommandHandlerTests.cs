@@ -61,7 +61,7 @@ public class RegisterUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task FallaEnvioEmail_EjecutaRollback_Y_RelanzaExcepcion()
+    public async Task FallaEnvioEmail_RegistraAdvertencia_NoRompeTransaccion_Y_HaceCommit()
     {
         // Arrange
         var command = new RegisterUserCommand("Maria Lopez", "maria@example.com", "Password123!", "http://localhost:5000");
@@ -71,27 +71,26 @@ public class RegisterUserCommandHandlerTests
         _emailSender.SendAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(expectedException);
 
-        var handler = CreateHandler();
+        var logger = Substitute.For<Microsoft.Extensions.Logging.ILogger<RegisterUserCommandHandler>>();
+        var handler = new RegisterUserCommandHandler(_usuarioRepository, _unitOfWork, _emailSender, null, logger);
 
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(command));
-        Assert.Equal(expectedException.Message, ex.Message);
+        // Act - No debe lanzar excepción hacia el controlador
+        await handler.Handle(command);
 
+        // Assert
         // a. Inició transacción
         await _unitOfWork.Received(1).BeginTransactionAsync(Arg.Any<CancellationToken>());
 
-        // b. Intentó persistir preliminarmente
+        // b. Persistió la entidad
         await _usuarioRepository.Received(1).AgregarAsync(Arg.Any<Usuario>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
-        // c. Intentó enviar correo
+        // c. Confirmó la transacción
+        await _unitOfWork.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().RollbackAsync(Arg.Any<CancellationToken>());
+
+        // d. Intentó enviar correo
         await _emailSender.Received(1).SendAsync(command.Email, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-
-        // e. Ejecutó RollbackAsync
-        await _unitOfWork.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
-
-        // d. NUNCA ejecutó CommitAsync
-        await _unitOfWork.DidNotReceive().CommitAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

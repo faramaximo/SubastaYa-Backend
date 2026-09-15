@@ -1,4 +1,4 @@
-using NSubstitute;
+﻿using NSubstitute;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Bids.Commands;
@@ -52,8 +52,8 @@ public class RegisterBidCommandHandlerTests
         var subasta = CrearSubastaActiva(vendedorId: 99, precioBase: 1000m);
         var billetera = new Billetera(usuarioId: 10, saldoTotal: 200m, saldoRetenido: 0m); // Solo $200 disponibles
 
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
-        _walletRepository.GetByUserIdAsync(10).Returns(billetera);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
+        _walletRepository.ObtenerPorUsuarioIdAsync(10).Returns(billetera);
 
         var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 10, Monto: 1000m);
@@ -61,10 +61,10 @@ public class RegisterBidCommandHandlerTests
         // Act & Assert
         await Assert.ThrowsAnyAsync<DomainException>(() => handler.Handle(command));
 
-        // Verificamos que NO se guardó nada en la base de datos (atomicidad preservada)
+        // Verificamos que NO se guardÃ³ nada en la base de datos (atomicidad preservada)
         await _unitOfWork.DidNotReceive().SaveChangesAsync();
 
-        // Verificamos que NO se emitió ninguna notificación SignalR a los clientes
+        // Verificamos que NO se emitiÃ³ ninguna notificaciÃ³n SignalR a los clientes
         await _notifier.DidNotReceive().NotificarNuevaPujaAsync(Arg.Any<PujaResponseDto>());
         await _auditService.DidNotReceive().RegistrarEventoAsync(
             Arg.Any<string>(), Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<object>(), Arg.Any<CancellationToken>());
@@ -78,8 +78,8 @@ public class RegisterBidCommandHandlerTests
         var subasta = CrearSubastaActiva(vendedorId: vendedorId, precioBase: 1000m);
         var billetera = new Billetera(usuarioId: vendedorId, saldoTotal: 5000m, saldoRetenido: 0m);
 
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
-        _walletRepository.GetByUserIdAsync(vendedorId).Returns(billetera);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
+        _walletRepository.ObtenerPorUsuarioIdAsync(vendedorId).Returns(billetera);
 
         var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: vendedorId, Monto: 1000m);
@@ -98,8 +98,8 @@ public class RegisterBidCommandHandlerTests
         var subasta = CrearSubastaActiva(vendedorId: 1, precioBase: 1000m, incremento: 100m);
         var billetera = new Billetera(usuarioId: 2, saldoTotal: 5000m, saldoRetenido: 0m);
 
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
-        _walletRepository.GetByUserIdAsync(2).Returns(billetera);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
+        _walletRepository.ObtenerPorUsuarioIdAsync(2).Returns(billetera);
 
         var handler = CrearHandler();
         var command = new RegisterBidCommand(SubastaId: subasta.Id, UsuarioId: 2, Monto: 500m);
@@ -118,8 +118,8 @@ public class RegisterBidCommandHandlerTests
         var subasta = CrearSubastaActiva(vendedorId: 1, precioBase: 1000m, incremento: 100m);
         var billetera = new Billetera(usuarioId: 2, saldoTotal: 5000m, saldoRetenido: 0m);
 
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
-        _walletRepository.GetByUserIdAsync(2).Returns(billetera);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
+        _walletRepository.ObtenerPorUsuarioIdAsync(2).Returns(billetera);
         _unitOfWork.SaveChangesAsync().Returns(1);
 
         var handler = CrearHandler();
@@ -135,13 +135,13 @@ public class RegisterBidCommandHandlerTests
         Assert.False(resultado.TiempoExtendido);
         Assert.NotNull(subasta.UltimaPujaFecha); // Toda puja debe modificar la fila protegida por Version.
 
-        // Verificamos que se confirmó la transacción exactamente 1 vez
+        // Verificamos que se confirmÃ³ la transacciÃ³n exactamente 1 vez
         await _unitOfWork.Received(1).SaveChangesAsync();
 
-        // Verificamos que se notificó por SignalR a los clientes
+        // Verificamos que se notificÃ³ por SignalR a los clientes
         await _notifier.Received(1).NotificarNuevaPujaAsync(Arg.Is<PujaResponseDto>(p => p.Monto == 1000m && p.UsuarioId == 2));
 
-        // No se debió activar Anti-Sniping porque quedaban 2 horas
+        // No se debiÃ³ activar Anti-Sniping porque quedaban 2 horas
         await _auditService.DidNotReceive().RegistrarEventoAsync(
             "Subasta", subasta.Id, "ANTI_SNIPING_ACTIVADO", Arg.Any<int?>(), Arg.Any<object>(), Arg.Any<CancellationToken>());
     }
@@ -158,8 +158,8 @@ public class RegisterBidCommandHandlerTests
 
         var billetera = new Billetera(usuarioId: 2, saldoTotal: 5000m, saldoRetenido: 0m);
 
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
-        _walletRepository.GetByUserIdAsync(2).Returns(billetera);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
+        _walletRepository.ObtenerPorUsuarioIdAsync(2).Returns(billetera);
         _unitOfWork.SaveChangesAsync().Returns(1);
 
         var handler = CrearHandler();
@@ -172,7 +172,7 @@ public class RegisterBidCommandHandlerTests
         Assert.NotNull(resultado);
         Assert.True(resultado.TiempoExtendido);
 
-        // Verificamos registro del evento de auditoría obligatorio
+        // Verificamos registro del evento de auditorÃ­a obligatorio
         await _auditService.Received(1).RegistrarEventoAsync(
             "Subasta",
             subasta.Id,
@@ -181,20 +181,20 @@ public class RegisterBidCommandHandlerTests
             Arg.Any<object>(),
             Arg.Any<CancellationToken>());
 
-        // Se confirmó el estado en BD
+        // Se confirmÃ³ el estado en BD
         await _unitOfWork.Received(1).SaveChangesAsync();
 
-        // Se notificó la extensión a los clientes
+        // Se notificÃ³ la extensiÃ³n a los clientes
         await _notifier.Received(1).NotificarNuevaPujaAsync(Arg.Is<PujaResponseDto>(p => p.TiempoExtendido));
     }
 
     [Fact]
     public async Task Devuelve_conflicto_si_una_oferta_identica_ya_gano_la_carrera()
     {
-        // Simula la segunda solicitud: la primera ya registró exactamente la misma oferta.
+        // Simula la segunda solicitud: la primera ya registrÃ³ exactamente la misma oferta.
         var subasta = CrearSubastaActiva(vendedorId: 1, precioBase: 1000m, incremento: 100m);
         subasta.RegistrarPuja(compradorId: 2, monto: 1000m);
-        _auctionRepository.GetByIdWithBidsAsync(subasta.Id).Returns(subasta);
+        _auctionRepository.ObtenerPorIdAsync(subasta.Id).Returns(subasta);
 
         var handler = CrearHandler();
 

@@ -41,7 +41,7 @@
     }
 
     // ==========================================================================
-    // VENTANA FLOTANTE DE AUTENTICACIÓN (LOGIN & REGISTRO)
+    // VENTANA FLOTANTE DE AUTENTICACIÓN (LOGIN, REGISTRO Y RECUPERACIÓN)
     // ==========================================================================
     function ensureAuthModal() {
         if (document.getElementById("authModal")) return;
@@ -57,7 +57,7 @@
                     </div>
 
                     <!-- Selector de Pestañas -->
-                    <div class="auth-tabs" role="tablist">
+                    <div class="auth-tabs" id="authModalTabs" role="tablist">
                         <button type="button" class="auth-tab-btn active" id="tabBtnLogin" role="tab" aria-selected="true">Iniciar Sesión</button>
                         <button type="button" class="auth-tab-btn" id="tabBtnRegister" role="tab" aria-selected="false">Crear Cuenta</button>
                     </div>
@@ -76,7 +76,7 @@
                             <div id="modalLoginError" class="alert alert-danger auth-alert d-none" role="alert"></div>
                             <button type="submit" class="btn-auth-primary" id="btnModalSubmitLogin">Ingresar al Sistema</button>
                             <div class="text-center mt-3">
-                                <a href="/pages/recuperar-contrasena.html" class="auth-link-secondary">¿Olvidaste tu contraseña?</a>
+                                <button type="button" class="auth-link-btn text-decoration-underline" id="btnGoToForgotPassword">¿Olvidaste tu contraseña?</button>
                             </div>
                         </form>
                         <div class="auth-card-footer">
@@ -106,6 +106,21 @@
                             ¿Ya tenés cuenta? <button type="button" class="auth-link-btn fw-bold" id="linkGoToLogin">Iniciá sesión</button>
                         </div>
                     </div>
+
+                    <!-- VISTA: RECUPERAR CONTRASEÑA -->
+                    <div id="viewForgotPassword" class="auth-view d-none">
+                        <form id="modalFormForgotPassword" novalidate>
+                            <div class="mb-3 text-start">
+                                <label for="modalForgotEmail" class="form-label-custom">Correo Electrónico</label>
+                                <input type="email" class="form-control auth-input" id="modalForgotEmail" required placeholder="ejemplo@correo.com" autocomplete="email">
+                            </div>
+                            <div id="modalForgotMessage" class="alert auth-alert d-none" role="alert"></div>
+                            <button type="submit" class="btn-auth-primary" id="btnModalSubmitForgot">Enviar enlace de recuperación</button>
+                        </form>
+                        <div class="auth-card-footer text-center">
+                            <button type="button" class="auth-link-btn fw-bold" id="linkForgotBackToLogin">← Volver al inicio de sesión</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -114,12 +129,16 @@
 
         const modalOverlay = document.getElementById("authModal");
         const modalClose = document.getElementById("authModalClose");
+        const modalTabs = document.getElementById("authModalTabs");
         const tabBtnLogin = document.getElementById("tabBtnLogin");
         const tabBtnRegister = document.getElementById("tabBtnRegister");
         const viewLogin = document.getElementById("viewLogin");
         const viewRegister = document.getElementById("viewRegister");
+        const viewForgotPassword = document.getElementById("viewForgotPassword");
         const linkGoToRegister = document.getElementById("linkGoToRegister");
         const linkGoToLogin = document.getElementById("linkGoToLogin");
+        const btnGoToForgotPassword = document.getElementById("btnGoToForgotPassword");
+        const linkForgotBackToLogin = document.getElementById("linkForgotBackToLogin");
         const authModalSubtitle = document.getElementById("authModalSubtitle");
 
         const formLogin = document.getElementById("modalFormLogin");
@@ -130,35 +149,56 @@
         const regMsg = document.getElementById("modalRegMessage");
         const btnSubmitRegister = document.getElementById("btnModalSubmitRegister");
 
+        const formForgot = document.getElementById("modalFormForgotPassword");
+        const forgotMsg = document.getElementById("modalForgotMessage");
+        const btnSubmitForgot = document.getElementById("btnModalSubmitForgot");
+
         function switchView(view) {
-            if (view === "login") {
-                tabBtnLogin.classList.add("active");
-                tabBtnLogin.setAttribute("aria-selected", "true");
-                tabBtnRegister.classList.remove("active");
-                tabBtnRegister.setAttribute("aria-selected", "false");
-                viewLogin.classList.remove("d-none");
-                viewRegister.classList.add("d-none");
-                authModalSubtitle.textContent = "Ingresá a tu cuenta";
-                setTimeout(() => document.getElementById("modalLoginEmail")?.focus(), 80);
-            } else {
-                tabBtnRegister.classList.add("active");
-                tabBtnRegister.setAttribute("aria-selected", "true");
-                tabBtnLogin.classList.remove("active");
-                tabBtnLogin.setAttribute("aria-selected", "false");
-                viewRegister.classList.remove("d-none");
-                viewLogin.classList.add("d-none");
-                authModalSubtitle.textContent = "Unite a la plataforma";
+            loginError?.classList.add("d-none");
+            regMsg?.classList.add("d-none");
+            forgotMsg?.classList.add("d-none");
+
+            if (view === "register") {
+                modalTabs?.classList.remove("d-none");
+                tabBtnRegister?.classList.add("active");
+                tabBtnRegister?.setAttribute("aria-selected", "true");
+                tabBtnLogin?.classList.remove("active");
+                tabBtnLogin?.setAttribute("aria-selected", "false");
+                viewRegister?.classList.remove("d-none");
+                viewLogin?.classList.add("d-none");
+                viewForgotPassword?.classList.add("d-none");
+                if (authModalSubtitle) authModalSubtitle.textContent = "Unite a la plataforma";
                 setTimeout(() => document.getElementById("modalRegNombre")?.focus(), 80);
+            } else if (view === "forgot") {
+                modalTabs?.classList.add("d-none");
+                viewForgotPassword?.classList.remove("d-none");
+                viewLogin?.classList.add("d-none");
+                viewRegister?.classList.add("d-none");
+                if (authModalSubtitle) authModalSubtitle.textContent = "Recuperá tu contraseña";
+                setTimeout(() => document.getElementById("modalForgotEmail")?.focus(), 80);
+            } else {
+                modalTabs?.classList.remove("d-none");
+                tabBtnLogin?.classList.add("active");
+                tabBtnLogin?.setAttribute("aria-selected", "true");
+                tabBtnRegister?.classList.remove("active");
+                tabBtnRegister?.setAttribute("aria-selected", "false");
+                viewLogin?.classList.remove("d-none");
+                viewRegister?.classList.add("d-none");
+                viewForgotPassword?.classList.add("d-none");
+                if (authModalSubtitle) authModalSubtitle.textContent = "Ingresá a tu cuenta";
+                setTimeout(() => document.getElementById("modalLoginEmail")?.focus(), 80);
             }
         }
 
-        tabBtnLogin.addEventListener("click", () => switchView("login"));
-        tabBtnRegister.addEventListener("click", () => switchView("register"));
-        linkGoToRegister.addEventListener("click", () => switchView("register"));
-        linkGoToLogin.addEventListener("click", () => switchView("login"));
+        tabBtnLogin?.addEventListener("click", () => switchView("login"));
+        tabBtnRegister?.addEventListener("click", () => switchView("register"));
+        linkGoToRegister?.addEventListener("click", () => switchView("register"));
+        linkGoToLogin?.addEventListener("click", () => switchView("login"));
+        btnGoToForgotPassword?.addEventListener("click", () => switchView("forgot"));
+        linkForgotBackToLogin?.addEventListener("click", () => switchView("login"));
 
-        modalClose.addEventListener("click", () => window.closeAuthModal());
-        modalOverlay.addEventListener("click", (e) => {
+        modalClose?.addEventListener("click", () => window.closeAuthModal());
+        modalOverlay?.addEventListener("click", (e) => {
             if (e.target === modalOverlay) window.closeAuthModal();
         });
 
@@ -169,7 +209,7 @@
         });
 
         // Enviar Formulario de Login
-        formLogin.addEventListener("submit", async (e) => {
+        formLogin?.addEventListener("submit", async (e) => {
             e.preventDefault();
             loginError.classList.add("d-none");
             const email = document.getElementById("modalLoginEmail").value.trim();
@@ -221,7 +261,7 @@
         });
 
         // Enviar Formulario de Registro
-        formRegister.addEventListener("submit", async (e) => {
+        formRegister?.addEventListener("submit", async (e) => {
             e.preventDefault();
             regMsg.classList.add("d-none");
             regMsg.classList.remove("alert-danger", "alert-success");
@@ -248,30 +288,92 @@
                     body: JSON.stringify({ nombre, email, password })
                 });
 
-                let data = {};
-                try { data = await response.json(); } catch (_) {}
-
                 if (!response.ok) {
-                    throw new Error(data.mensaje || data.error || "No se pudo crear la cuenta.");
+                    let errorMessage = "Ocurrió un error al registrarse.";
+                    try {
+                        const errData = await response.json();
+                        errorMessage = errData.error || errData.mensaje || errorMessage;
+                    } catch (_) {}
+                    throw new Error(errorMessage);
                 }
 
-                regMsg.textContent = "¡Cuenta creada con éxito! Ingresá tus datos para ingresar.";
+                regMsg.textContent = "¡Cuenta creada con éxito! Iniciando sesión...";
                 regMsg.classList.add("alert-success");
-                regMsg.classList.remove("d-none", "alert-danger");
+                regMsg.classList.remove("d-none");
 
-                setTimeout(() => {
-                    switchView("login");
-                    document.getElementById("modalLoginEmail").value = email;
-                    document.getElementById("modalLoginPassword").value = "";
-                    document.getElementById("modalLoginPassword").focus();
-                }, 1400);
+                setTimeout(async () => {
+                    try {
+                        const loginResp = await fetch(`${base}/api/v1/tokens`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email, password })
+                        });
+                        if (loginResp.ok) {
+                            const loginData = await loginResp.json();
+                            sessionStorage.setItem("subastaya_user_id", String(loginData.id));
+                            sessionStorage.setItem("subastaya_user_name", loginData.nombre || nombre);
+                            localStorage.setItem("token", loginData.token);
+                            window.closeAuthModal();
+                            window.updateAuthHeader();
+                            window.dispatchEvent(new CustomEvent("subastaya:login", { detail: loginData }));
+                        } else {
+                            switchView("login");
+                        }
+                    } catch (_) {
+                        switchView("login");
+                    }
+                }, 900);
             } catch (err) {
                 regMsg.textContent = err.message;
                 regMsg.classList.add("alert-danger");
-                regMsg.classList.remove("d-none", "alert-success");
+                regMsg.classList.remove("d-none");
             } finally {
                 btnSubmitRegister.disabled = false;
                 btnSubmitRegister.textContent = "Crear Cuenta";
+            }
+        });
+
+        // Enviar Formulario de Recuperación de Contraseña
+        formForgot?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            forgotMsg.classList.add("d-none");
+            forgotMsg.classList.remove("alert-danger", "alert-success");
+
+            const email = document.getElementById("modalForgotEmail").value.trim();
+            if (!email) {
+                forgotMsg.textContent = "Por favor ingresá tu correo electrónico.";
+                forgotMsg.classList.add("alert-danger");
+                forgotMsg.classList.remove("d-none");
+                return;
+            }
+
+            try {
+                btnSubmitForgot.disabled = true;
+                btnSubmitForgot.textContent = "Enviando enlace...";
+
+                const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
+                const response = await fetch(`${base}/api/v1/password-resets`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+
+                let mensaje = "Si el correo está registrado, recibirás un enlace con instrucciones.";
+                try {
+                    const data = await response.json();
+                    if (data?.mensaje) mensaje = data.mensaje;
+                } catch (_) {}
+
+                forgotMsg.textContent = mensaje;
+                forgotMsg.classList.add("alert-success");
+                forgotMsg.classList.remove("d-none");
+            } catch (err) {
+                forgotMsg.textContent = "No pudimos procesar la solicitud. Intentá nuevamente.";
+                forgotMsg.classList.add("alert-danger");
+                forgotMsg.classList.remove("d-none");
+            } finally {
+                btnSubmitForgot.disabled = false;
+                btnSubmitForgot.textContent = "Enviar enlace de recuperación";
             }
         });
     }
@@ -284,29 +386,43 @@
         // Limpiar errores previos
         document.getElementById("modalLoginError")?.classList.add("d-none");
         document.getElementById("modalRegMessage")?.classList.add("d-none");
+        document.getElementById("modalForgotMessage")?.classList.add("d-none");
 
+        const modalTabs = document.getElementById("authModalTabs");
         const tabBtnLogin = document.getElementById("tabBtnLogin");
         const tabBtnRegister = document.getElementById("tabBtnRegister");
         const viewLogin = document.getElementById("viewLogin");
         const viewRegister = document.getElementById("viewRegister");
+        const viewForgotPassword = document.getElementById("viewForgotPassword");
         const authModalSubtitle = document.getElementById("authModalSubtitle");
 
         if (view === "register") {
+            modalTabs?.classList.remove("d-none");
             tabBtnRegister?.classList.add("active");
             tabBtnRegister?.setAttribute("aria-selected", "true");
             tabBtnLogin?.classList.remove("active");
             tabBtnLogin?.setAttribute("aria-selected", "false");
             viewRegister?.classList.remove("d-none");
             viewLogin?.classList.add("d-none");
+            viewForgotPassword?.classList.add("d-none");
             if (authModalSubtitle) authModalSubtitle.textContent = "Unite a la plataforma";
             setTimeout(() => document.getElementById("modalRegNombre")?.focus(), 100);
+        } else if (view === "forgot") {
+            modalTabs?.classList.add("d-none");
+            viewForgotPassword?.classList.remove("d-none");
+            viewLogin?.classList.add("d-none");
+            viewRegister?.classList.add("d-none");
+            if (authModalSubtitle) authModalSubtitle.textContent = "Recuperá tu contraseña";
+            setTimeout(() => document.getElementById("modalForgotEmail")?.focus(), 100);
         } else {
+            modalTabs?.classList.remove("d-none");
             tabBtnLogin?.classList.add("active");
             tabBtnLogin?.setAttribute("aria-selected", "true");
             tabBtnRegister?.classList.remove("active");
             tabBtnRegister?.setAttribute("aria-selected", "false");
             viewLogin?.classList.remove("d-none");
             viewRegister?.classList.add("d-none");
+            viewForgotPassword?.classList.add("d-none");
             if (authModalSubtitle) authModalSubtitle.textContent = "Ingresá a tu cuenta";
             setTimeout(() => document.getElementById("modalLoginEmail")?.focus(), 100);
         }
@@ -325,13 +441,85 @@
     };
 
     // ==========================================================================
+    // MODAL ELEGANTE DE CONFIRMACIÓN PARA CERRAR SESIÓN
+    // ==========================================================================
+    function ensureLogoutModal() {
+        if (document.getElementById("logoutConfirmModal")) return;
+
+        const logoutModalHtml = `
+            <div id="logoutConfirmModal" class="auth-modal-overlay" aria-hidden="true">
+                <div class="auth-modal-card logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+                    <button type="button" class="auth-modal-close" id="logoutModalClose" aria-label="Cerrar modal">&times;</button>
+                    
+                    <div class="logout-modal-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                        </svg>
+                    </div>
+
+                    <h3 id="logoutModalTitle" class="auth-modal-title fs-4 mb-2">Cerrar Sesión</h3>
+                    <p class="logout-modal-text">¿Estás seguro de que deseas salir de tu cuenta?</p>
+
+                    <div class="logout-modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="btnLogoutCancel">Cancelar</button>
+                        <button type="button" class="btn-modal-danger" id="btnLogoutConfirm">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", logoutModalHtml);
+
+        const overlay = document.getElementById("logoutConfirmModal");
+        const closeBtn = document.getElementById("logoutModalClose");
+        const cancelBtn = document.getElementById("btnLogoutCancel");
+        const confirmBtn = document.getElementById("btnLogoutConfirm");
+
+        const close = () => {
+            overlay.classList.remove("active");
+            overlay.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        };
+
+        closeBtn?.addEventListener("click", close);
+        cancelBtn?.addEventListener("click", close);
+        overlay?.addEventListener("click", (e) => {
+            if (e.target === overlay) close();
+        });
+
+        confirmBtn?.addEventListener("click", () => {
+            close();
+            clearSession();
+            window.location.assign("/index.html");
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && overlay.classList.contains("active")) {
+                close();
+            }
+        });
+    }
+
+    window.openLogoutModal = () => {
+        ensureLogoutModal();
+        const modal = document.getElementById("logoutConfirmModal");
+        if (!modal) return;
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        document.getElementById("btnLogoutCancel")?.focus();
+    };
+
+    // ==========================================================================
     // CICLO DE VIDA Y CABECERA
     // ==========================================================================
     document.addEventListener("DOMContentLoaded", () => {
         ensureAuthModal();
+        ensureLogoutModal();
 
         const page = window.location.pathname.toLowerCase();
-        const isProtected = ["crear-subasta", "billetera", "panel", "perfil"].some((route) => page.includes(route));
+        const isProtected = ["crear-subasta", "billetera", "panel"].some((route) => page.includes(route));
         const themeToggle = document.getElementById("themeToggle");
         const authActions = document.querySelector(".auth-actions");
 
@@ -375,30 +563,26 @@
             authActions.innerHTML = `
                 <div class="user-menu">
                     <span class="user-menu__name">Hola, ${escapeHtml(user.name)}</span>
-                    <a class="user-menu__settings" href="/pages/perfil.html#configuracion" aria-label="Configuración" title="Configuración">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.2 7.2 0 0 0-1.62-.94L14.38 2.8A.5.5 0 0 0 13.89 2h-3.84a.5.5 0 0 0-.49.41l-.36 2.54c-.59.24-1.14.55-1.62.93l-2.39-.96a.5.5 0 0 0-.61.22L2.66 8.46a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.07.64-.07.96s.03.64.07.94L2.78 14.16a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .61.22l2.39-.96c.48.38 1.03.69 1.62.94l.36 2.54a.5.5 0 0 0 .49.41h3.84a.5.5 0 0 0 .49-.41l.36-2.54c.59-.24 1.14-.55 1.62-.94l2.39.96a.5.5 0 0 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.02-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"/>
-                        </svg>
-                    </a>
                     <button id="btnCerrarSesion" class="user-menu__logout" type="button">Cerrar sesión</button>
                 </div>
             `;
 
             document.getElementById("btnCerrarSesion")?.addEventListener("click", () => {
-                if (!window.confirm("¿Querés cerrar sesión?")) return;
-                clearSession();
-                window.location.assign("/index.html");
+                window.openLogoutModal();
             });
         };
 
         window.updateAuthHeader();
 
-        // Interceptar cualquier enlace hacia login.html o registro.html en la página
+        // Interceptar enlaces hacia login, registro o recuperar contraseña en la página
         document.addEventListener("click", (e) => {
             const link = e.target.closest("a");
             if (!link) return;
             const href = link.getAttribute("href") || "";
-            if (href.includes("login.html")) {
+            if (href.includes("recuperar-contrasena.html")) {
+                e.preventDefault();
+                window.openAuthModal("forgot");
+            } else if (href.includes("login.html")) {
                 e.preventDefault();
                 window.openAuthModal("login");
             } else if (href.includes("registro.html")) {
@@ -410,7 +594,7 @@
         // Apertura automática si la URL contiene parámetro de acción
         const urlParams = new URLSearchParams(window.location.search);
         const authAction = urlParams.get("action");
-        if (authAction === "login" || authAction === "register") {
+        if (authAction === "login" || authAction === "register" || authAction === "forgot") {
             const cleanUrl = window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
             setTimeout(() => window.openAuthModal(authAction), 150);

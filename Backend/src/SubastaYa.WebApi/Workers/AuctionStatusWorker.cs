@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auctions.Commands;
-using SubastaYa.Domain.Enums;
-using SubastaYa.Infrastructure.Data;
 
 namespace SubastaYa.WebApi.Workers
 {
@@ -23,42 +20,36 @@ namespace SubastaYa.WebApi.Workers
         {
             _logger.LogInformation("🤖 Worker de Subastas iniciado.");
 
+            // Espera inicial para permitir que las migraciones y arranque de la BD concluyan
+            try
+            {
+                await Task.Delay(2500, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     using (var scope = _scopeFactory.CreateScope())
                     {
-                        var context = scope.ServiceProvider.GetRequiredService<SubastaYaDbContext>();
+                        var startHandler = scope.ServiceProvider.GetRequiredService<StartScheduledAuctionsCommandHandler>();
+                        var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
                         var notifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>();
-                        bool huboCambios = false;
                         var ahoraUtc = DateTime.UtcNow;
 
-                        // 1. ARRANCAR SUBASTAS PROGRAMADAS
-                        var subastasParaActivar = await context.Subastas
-                            .Where(s => s.Estado == EstadoSubasta.Programada && s.FechaInicio <= ahoraUtc && s.FechaFin > ahoraUtc)
-                            .ToListAsync(stoppingToken);
-
-                        foreach (var subasta in subastasParaActivar)
+                        // 1. ARRANCAR SUBASTAS PROGRAMADAS MEDIANTE EL HANDLER DE APLICACIÓN
+                        var iniciadasIds = await startHandler.Handle(new StartScheduledAuctionsCommand(), stoppingToken);
+                        foreach (var subastaId in iniciadasIds)
                         {
-                            subasta.IniciarSubastaProgramada();
-                            _logger.LogInformation($"🟢 Subasta {subasta.Id} ha comenzado. Estado cambiado a ACTIVA.");
-
-                            await notifier.NotificarSubastaIniciadaAsync(subasta.Id);
-                            huboCambios = true;
+                            _logger.LogInformation("🟢 Subasta {SubastaId} ha comenzado. Estado cambiado a ACTIVA.", subastaId);
                         }
 
-                        if (huboCambios)
-                        {
-                            await context.SaveChangesAsync(stoppingToken);
-                            await notifier.NotificarActualizacionCatalogoAsync();
-                        }
-
-                        // 2. OBTENER IDS DE SUBASTAS VENCIDAS PARA LIQUIDAR
-                        var subastasVencidasIds = await context.Subastas
-                            .Where(s => (s.Estado == EstadoSubasta.Activa || s.Estado == EstadoSubasta.Programada) && s.FechaFin <= ahoraUtc)
-                            .Select(s => s.Id)
-                            .ToListAsync(stoppingToken);
+                        // 2. OBTENER IDS DE SUBASTAS VENCIDAS PARA LIQUIDAR A TRAVÉS DEL REPOSITORIO
+                        var subastasVencidasIds = await auctionRepository.ObtenerIdsVencidasAsync(ahoraUtc, stoppingToken);
 
                         // 3. LIQUIDAR CADA SUBASTA MEDIANTE EL HANDLER DENTRO DE SU PROPIO SCOPE
                         foreach (var subastaId in subastasVencidasIds)
@@ -75,12 +66,12 @@ namespace SubastaYa.WebApi.Workers
                                 }
                                 else
                                 {
-                                    _logger.LogDebug("La subasta {SubastaId} dejó de ser liquidable antes de adquirir el bloqueo de transacción.", subastaId);
+                                    _logger.LogDebug("La subasta {SubastaId} dejo de ser liquidable antes de adquirir el bloqueo de transaccion.", subastaId);
                                 }
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "❌ Error liquidando subasta {SubastaId}.", subastaId);
+                                _logger.LogWarning("⚠️ Error liquidando subasta {SubastaId}: {Message}", subastaId, ex.Message);
                             }
                         }
 
@@ -90,9 +81,9 @@ namespace SubastaYa.WebApi.Workers
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
                 {
-                    _logger.LogError(ex, "❌ Ocurrió un error en el worker de liquidación.");
+                    _logger.LogWarning("⚠️ Base de datos no disponible o error transitorio en AuctionStatusWorker ({Message}). Reintentando en el próximo ciclo...", ex.Message);
                 }
 
                 await Task.Delay(10000, stoppingToken);

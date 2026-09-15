@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: subastaya_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: SubastaYaDb
+      MYSQL_USER: subastaya_user
+      MYSQL_PASSWORD: subastaya_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "subastaya_user", "-psubastaya_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: subastaya_mailpit
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Mailpit Web UI
+
+  api:
+    build:
+      context: .
+      dockerfile: Backend/src/SubastaYa.WebApi/Dockerfile
+    container_name: subastaya_api
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=SubastaYaDb;Uid=subastaya_user;Pwd=subastaya_password;
+      - Jwt__SecretKey=SubastaYaSuperSecretKeyForDevelopment2026!
+      - Jwt__Issuer=SubastaYa
+      - Jwt__Audience=SubastaYa.Frontend
+      - Email__SmtpHost=mailpit
+      - Email__Port=1025
+      - Email__UseSsl=false
+      - Email__Username=
+      - Email__Password=
+      - Email__From=no-reply@subastaya.local
+    ports:
+      - "5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+volumes:
+  mysql_data:

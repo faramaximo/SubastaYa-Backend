@@ -1,6 +1,8 @@
 using SubastaYa.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;
 
+namespace SubastaYa.Domain.Entities;
+
 public class Billetera
 {
     public int Id { get; private set; }

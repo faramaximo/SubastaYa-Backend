@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SubastaYa.Infrastructure.Services;
 using SubastaYa.WebApi.Services;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +88,7 @@ builder.Services.AddScoped<SearchAuctionsQueryHandler>();
 builder.Services.AddScoped<GetAuctionByIdQueryHandler>();
 builder.Services.AddScoped<CreateAuctionCommandHandler>();
 builder.Services.AddScoped<FinalizeAuctionCommandHandler>();
+builder.Services.AddScoped<StartScheduledAuctionsCommandHandler>();
 builder.Services.AddScoped<RegisterBidCommandHandler>();
 
 builder.Services.AddScoped<DepositCommandHandler>();
@@ -98,7 +100,40 @@ builder.Services.AddHostedService<SubastaYa.WebApi.Workers.AuctionStatusWorker>(
 builder.Services.AddSignalR();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "SubastaYa API",
+        Version = "v1",
+        Description = "API de SubastaYa con soporte para autenticación JWT Bearer."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Autenticación JWT Bearer. Ingrese 'Bearer' seguido de un espacio y su token. Ejemplo: \"Bearer eyJhbGciOi...\"",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Configuración de CORS incluyendo los puertos de desarrollo local
 builder.Services.AddCors(options => {
@@ -133,6 +168,15 @@ var interfazPath = Path.GetFullPath(Path.Combine(
     builder.Environment.ContentRootPath,
     "..", "..", "..", "Fronted", "SubastaYa-Fronted", "wwwroot"));
 
+if (!Directory.Exists(interfazPath))
+{
+    var contenedorWwwroot = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+    if (Directory.Exists(contenedorWwwroot))
+    {
+        interfazPath = contenedorWwwroot;
+    }
+}
+
 PhysicalFileProvider? interfazFileProvider = null;
 
 if (Directory.Exists(interfazPath))
@@ -165,18 +209,20 @@ if (interfazFileProvider is not null)
     });
 }
 
-// Inicialización de la base de datos (Seeder)
+// Inicialización de la base de datos (Migraciones + Seeder)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<SubastaYaDbContext>();
-        await SubastaYa.Infrastructure.Seed.DbInitializer.SeedAsync(context);
+        await context.Database.MigrateAsync();
+        await SubastaYa.Infrastructure.Seed.DbInitializer.InitializeAsync(context);
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Ocurrió un error al ejecutar el Seeder: {ex.Message}");
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Error al aplicar migraciones o inicializar datos semilla.");
     }
 }
 

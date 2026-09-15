@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Auth.Commands;
 using SubastaYa.Domain.Entities;
@@ -14,17 +15,20 @@ public class RegisterUserCommandHandler
     private readonly IUnitOfWork _uow;
     private readonly IEmailSender _emailSender;
     private readonly IConfiguration? _configuration;
+    private readonly ILogger<RegisterUserCommandHandler>? _logger;
 
     public RegisterUserCommandHandler(
         IUsuarioRepository usuarios,
         IUnitOfWork uow,
         IEmailSender emailSender,
-        IConfiguration? configuration = null)
+        IConfiguration? configuration = null,
+        ILogger<RegisterUserCommandHandler>? logger = null)
     {
         _usuarios = usuarios;
         _uow = uow;
         _emailSender = emailSender;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task Handle(RegisterUserCommand cmd, CancellationToken cancellationToken = default)
@@ -54,11 +58,23 @@ public class RegisterUserCommandHandler
 
         try
         {
-            // b. Persistir preliminarmente la entidad Usuario
+            // b. Persistir la entidad Usuario
             await _usuarios.AgregarAsync(nuevoUsuario);
             await _uow.SaveChangesAsync(cancellationToken);
 
-            // c. Intentar el envío del correo de confirmación mediante IEmailSender
+            // c. Confirmar transacción en base de datos
+            await _uow.CommitAsync(cancellationToken);
+        }
+        catch (Exception)
+        {
+            // Si ocurre un error de persistencia, deshacer la transacción
+            await _uow.RollbackAsync(cancellationToken);
+            throw;
+        }
+
+        // d. Intentar el envío de correo de confirmación de forma defensiva
+        try
+        {
             var baseUrl = !string.IsNullOrWhiteSpace(cmd.BaseUrl)
                 ? cmd.BaseUrl
                 : (_configuration?["App:BaseUrl"] ?? "http://localhost:5000");
@@ -80,17 +96,10 @@ public class RegisterUserCommandHandler
                 </div>";
 
             await _emailSender.SendAsync(nuevoUsuario.Email, subject, htmlBody, cancellationToken);
-
-            // d. Si el correo se envía correctamente, ejecutar CommitAsync() de la transacción
-            await _uow.CommitAsync(cancellationToken);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // e. Si ocurre una excepción (tanto en BD como en el envío SMTP), ejecutar RollbackAsync()
-            // de la transacción para que el usuario no quede creado en estado inconsistente,
-            // y relanzar la excepción para ser capturada por el ExceptionMiddleware.
-            await _uow.RollbackAsync(cancellationToken);
-            throw;
+            _logger?.LogWarning(ex, "Advertencia: No se pudo enviar el correo de verificación a {Email}. El usuario fue registrado con éxito.", nuevoUsuario.Email);
         }
     }
 

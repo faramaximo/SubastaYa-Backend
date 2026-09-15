@@ -7,6 +7,8 @@ namespace SubastaYa.Infrastructure.Seed
 {
     public static class DbInitializer
     {
+        public static Task InitializeAsync(SubastaYaDbContext context) => SeedAsync(context);
+
         public static async Task SeedAsync(SubastaYaDbContext context)
         {
             try
@@ -25,7 +27,7 @@ namespace SubastaYa.Infrastructure.Seed
                     {
                         new Categoria { Nombre = "Tecnología", ImagenUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f" },
                         new Categoria { Nombre = "Coleccionables", ImagenUrl = "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f" },
-                        new Categoria { Nombre = "Indumentaria", ImagenUrl = "https://images.unsplash.com/photo-1516762689617-e1cffffd478d" },
+                        new Categoria { Nombre = "Indumentaria", ImagenUrl = "https://fund.ar/wp-content/uploads/2023/12/pexels-rdne-stock-project-5698851-scaled.jpg" },
                         new Categoria { Nombre = "Vehículos", ImagenUrl = "https://images.unsplash.com/photo-1552519507-da3b142c6e3d" }
                     };
                     context.Categorias.AddRange(categorias);
@@ -72,7 +74,7 @@ namespace SubastaYa.Infrastructure.Seed
                         new Subasta(usuarios[0].Id, categorias[1].Id, "Reloj Antiguo", "Siglo XIX", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f", 50000m, 2000m, DateTime.UtcNow.AddHours(48)),
                             
                         // 3: Vencida con ganador
-                        new Subasta(usuarios[0].Id, categorias[2].Id, "Chaqueta de Cuero Vintage", "Edición limitada", "https://images.unsplash.com/photo-1516762689617-e1cffffd478d", 10000m, 1000m, DateTime.UtcNow.AddMinutes(10)),
+                        new Subasta(usuarios[0].Id, categorias[2].Id, "Chaqueta de Cuero Vintage", "Edición limitada", "https://fund.ar/wp-content/uploads/2023/12/pexels-rdne-stock-project-5698851-scaled.jpg", 10000m, 1000m, DateTime.UtcNow.AddMinutes(10)),
                             
                         // 4: Vencida desierta
                         new Subasta(usuarios[0].Id, categorias[0].Id, "Auriculares In-Ear", "Inalámbricos", "https://images.unsplash.com/photo-1550745165-9bc0b252726f", 5000m, 100m, DateTime.UtcNow.AddMinutes(10))

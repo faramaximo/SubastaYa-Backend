@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.DTOs;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Domain.Enums;
@@ -63,7 +63,10 @@ namespace SubastaYa.Infrastructure.Persistence.Queries
             // 1. FILTROS
             if (estado.HasValue)
             {
-                query = query.Where(s => s.Estado == (SubastaYa.Domain.Enums.EstadoSubasta)estado.Value);
+                if (estado.Value == 2)
+                    query = query.Where(s => s.Estado == EstadoSubasta.Finalizada || s.Estado == EstadoSubasta.Desierta);
+                else
+                    query = query.Where(s => s.Estado == (EstadoSubasta)estado.Value);
             }
 
             if (categoriaId.HasValue)

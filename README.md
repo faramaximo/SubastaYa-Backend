@@ -6,30 +6,58 @@ SubastaYa es un sistema distribuido de subastas en tiempo real construido sobre 
 
 ## 1. Requisitos Previos
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [MySQL Server 8.0+](https://dev.mysql.com/downloads/mysql/) o contenedor Docker equivalente
-- Servidor SMTP para pruebas locales o cuenta en [Mailtrap](https://mailtrap.io/)
-- Cliente HTTP / curl o terminal Bash para ejecucion de pruebas
+- [Docker](https://www.docker.com/) y Docker Compose (recomendado para ejecución completa y reproducible)
+- Alternativamente para ejecución nativa:
+  - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+  - [MySQL Server 8.0+](https://dev.mysql.com/downloads/mysql/)
+  - Servidor SMTP local (Mailpit)
+  - Cliente HTTP / curl o terminal Bash para ejecución de pruebas
 
 ---
 
-## 2. Configuracion Inicial del Entorno
+## 2. Ejecución Rápida con Docker Compose (Recomendado)
 
-1. En la carpeta `Backend/src/SubastaYa.WebApi/`, copia la plantilla de configuracion:
+El proyecto cuenta con un entorno contenerizado reproducible que levanta la base de datos MySQL 8, el servidor SMTP local con interfaz web Mailpit y la API Web en ASP.NET Core 8.
+
+### Iniciar todo el ecosistema:
+Desde la raíz del repositorio:
+```bash
+docker compose up --build
+```
+*(O en segundo plano con `docker compose up --build -d`)*
+
+### URLs de Acceso a los Servicios:
+- **API y Documentación Swagger UI:** [http://localhost:5000/swagger](http://localhost:5000/swagger)
+- **Interfaz Web (SPA):** [http://localhost:5000/index.html](http://localhost:5000/index.html)
+- **Bandeja de Entrada SMTP (Mailpit Web UI):** [http://localhost:8025](http://localhost:8025)
+- **Base de Datos MySQL:** `localhost:3306` (Usuario: `subastaya_user`, Contraseña: `subastaya_password`, Base: `SubastaYaDb`)
+- **Hub en Tiempo Real (SignalR):** [http://localhost:5000/hubs/auction](http://localhost:5000/hubs/auction)
+
+### Detener los Servicios:
+```bash
+docker compose down
+```
+*(Para reiniciar la base de datos desde cero eliminando los volúmenes persistentes, usa `docker compose down -v`).*
+
+---
+
+## 3. Configuración Inicial para Ejecución Local (Sin Docker)
+
+1. En la carpeta `Backend/src/SubastaYa.WebApi/`, copia la plantilla de configuración:
    ```bash
    cp appsettings.Example.json appsettings.json
    ```
-2. Configura los parametros de tu entorno local en `appsettings.json`:
-   - Cadena de conexion MySQL (`DefaultConnection`).
-   - Clave secreta JWT (`Jwt:SecretKey`, minimo 32 caracteres).
-   - Credenciales SMTP para envio de correos (`Email:Username`, `Email:Password`).
+2. Configura los parámetros de tu entorno local en `appsettings.json`:
+   - Cadena de conexión MySQL (`DefaultConnection`).
+   - Clave secreta JWT (`Jwt:SecretKey`, mínimo 32 caracteres).
+   - Configuración SMTP para Mailpit (`Email:SmtpHost: "mailpit"`, `Port: 1025`, `UseSsl: false`).
 
 ---
 
-## 3. Compilacion, Migraciones y Ejecucion
+## 4. Compilación, Migraciones y Ejecución Local
 
-### Compilar la Solucion
-Desde la raiz del repositorio:
+### Compilar la Solución
+Desde la raíz del repositorio:
 ```bash
 dotnet build Backend/src/SubastaYa.WebApi/SubastaYa.WebApi.csproj
 ```
@@ -40,13 +68,13 @@ Para crear o actualizar el esquema relacional en MySQL:
 dotnet ef database update --project Backend/src/SubastaYa.Infrastructure --startup-project Backend/src/SubastaYa.WebApi
 ```
 
-*(Nota: Al arrancar la aplicacion en modo desarrollo, el seeder `DbInitializer` poblara datos iniciales de catalogo y usuarios de prueba si la base de datos se encuentra vacia).*
+*(Nota: Al arrancar la aplicación en modo desarrollo, el seeder `DbInitializer` poblará datos iniciales de catálogo y usuarios de prueba si la base de datos se encuentra vacía).*
 
-### Ejecutar la Web API
+### Ejecutar la Web API de forma local
 ```bash
 dotnet run --project Backend/src/SubastaYa.WebApi/SubastaYa.WebApi.csproj
 ```
-Por defecto la API estara escuchando en:
+Por defecto la API estará escuchando en:
 - API Base: `http://localhost:5216`
 - Swagger UI: `http://localhost:5216/swagger`
 - Interfaz Web SPA: `http://localhost:5216/index.html`

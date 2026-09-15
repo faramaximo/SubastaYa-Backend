@@ -66,30 +66,30 @@
                     <div class="col-12 col-lg-6 d-flex flex-column gap-2">
 
                         <!-- EL CONTADOR (Súper delgado) -->
-                        <div class="card border border-light-subtle shadow-sm bg-white w-100 mb-0 sala-timer-card">
-                            <div class="card-header bg-transparent border-bottom-0 text-end text-muted pb-0 pt-2 pe-3 sala-timer-header">
+                        <div class="card w-100 mb-0 sala-timer-card">
+                            <div class="card-header border-bottom-0 text-end pb-0 pt-2 pe-3 sala-timer-header">
                                 <span id="fechaFinTexto">Calculando...</span>
                             </div>
                             <div class="card-body p-0">
                                 <div id="sala-detailed-timer" class="d-flex justify-content-between text-center align-items-center py-1 px-2" data-inicio="" data-fin="">
                                     <div class="d-flex flex-column flex-fill">
-                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-days">00</span>
-                                        <span id="label-days" class="text-uppercase text-muted sala-timer-label">Días</span>
+                                        <span class="fs-4 fw-bold lh-1" id="timer-days">00</span>
+                                        <span id="label-days" class="text-uppercase sala-timer-label">Días</span>
                                     </div>
                                     <div class="sala-timer-separator"></div>
                                     <div class="d-flex flex-column flex-fill">
-                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-hours">00</span>
-                                        <span id="label-hours" class="text-uppercase text-muted sala-timer-label">Horas</span>
+                                        <span class="fs-4 fw-bold lh-1" id="timer-hours">00</span>
+                                        <span id="label-hours" class="text-uppercase sala-timer-label">Horas</span>
                                     </div>
                                     <div class="sala-timer-separator"></div>
                                     <div class="d-flex flex-column flex-fill">
-                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-minutes">00</span>
-                                        <span id="label-minutes" class="text-uppercase text-muted sala-timer-label">Minutos</span>
+                                        <span class="fs-4 fw-bold lh-1" id="timer-minutes">00</span>
+                                        <span id="label-minutes" class="text-uppercase sala-timer-label">Minutos</span>
                                     </div>
                                     <div class="sala-timer-separator"></div>
                                     <div class="d-flex flex-column flex-fill">
-                                        <span class="fs-4 fw-bold text-dark lh-1" id="timer-seconds">00</span>
-                                        <span id="label-seconds" class="text-uppercase text-muted sala-timer-label">Segundos</span>
+                                        <span class="fs-4 fw-bold lh-1" id="timer-seconds">00</span>
+                                        <span id="label-seconds" class="text-uppercase sala-timer-label">Segundos</span>
                                     </div>
                                 </div>
                                 <div class="sala-timer-progress-track">
@@ -103,7 +103,7 @@
                         </div>
 
                         <!-- LA CAJA BLANCA -->
-                        <div class="p-3 shadow-sm bg-white w-100 sala-info-card">
+                        <div class="p-3 shadow-sm w-100 sala-info-card">
 
                             <!-- Cabecera de estado -->
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -116,14 +116,14 @@
 
                             <!-- Oferta actual -->
                             <div class="mb-2">
-                                <span class="text-muted d-block text-uppercase fw-semibold mb-0 sala-current-price-label">Oferta actual</span>
-                                <strong id="salaOferta" class="auction-room__current text-primary sala-current-price">$0</strong>
+                                <span class="d-block text-uppercase fw-semibold mb-0 sala-current-price-label">Oferta actual</span>
+                                <strong id="salaOferta" class="auction-room__current sala-current-price">$0</strong>
                             </div>
 
                             <!-- Agrupamos Líder y Mínima en una línea con un borde divisor -->
-                            <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom border-light-subtle">
-                                <div id="liderInfo" class="text-dark fw-semibold sala-leader-info">Líder: <em>...</em></div>
-                                <div id="salaMinima" class="text-muted text-end sala-minimum-info">Mínima...</div>
+                            <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom">
+                                <div id="liderInfo" class="fw-semibold sala-leader-info">Líder: <em>...</em></div>
+                                <div id="salaMinima" class="text-end sala-minimum-info">Mínima...</div>
                             </div>
 
                             <!-- CAJA DE PUJA -->
@@ -133,18 +133,21 @@
 
                                 <!-- AVISO DE EXTENSIÓN ANTI-SNIPING -->
                                 <div id="alertaExtensionTiempo" class="d-none mb-2 py-2 px-2 rounded text-center border border-danger bg-danger bg-opacity-10 text-danger sala-anti-sniping-alert" role="alert">
-                                    <div class="fw-bold sala-anti-sniping-title">🔴 Subasta extendida +2:00</div>
+                                    <div class="fw-bold sala-anti-sniping-title">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" style="margin-right:4px;vertical-align:-.1em"><circle cx="8" cy="8" r="8"/></svg>
+                                        Subasta extendida +2:00
+                                    </div>
                                     <div class="sala-anti-sniping-sub">Una nueva puja extendió el tiempo.</div>
                                 </div>
 
                                 <form id="formPuja" novalidate>
                                     <label for="montoPuja" class="fw-bold mb-1 sala-bid-label">Tu puja</label>
                                     <div class="input-group input-group-sm mb-2">
-                                        <span class="input-group-text bg-white border-end-0 fw-bold text-muted">$</span>
-                                        <input id="montoPuja" type="number" class="form-control border-start-0 ps-0 fw-semibold bg-white sala-bid-input" min="0" step="0.01" inputmode="decimal" required>
+                                        <span class="input-group-text border-end-0 fw-bold sala-bid-prefix">$</span>
+                                        <input id="montoPuja" type="number" class="form-control border-start-0 ps-0 fw-semibold sala-bid-input" min="0" step="0.01" inputmode="decimal" required>
                                     </div>
                                     <button id="btnOfertar" class="btn btn-primary btn-sm w-100 fw-bold sala-btn-bid" type="button">Ofertar</button>
-                                    <p id="pujaAyuda" class="text-muted mb-0 mt-1 sala-bid-hint"></p>
+                                    <p id="pujaAyuda" class="mb-0 mt-1 sala-bid-hint"></p>
                                 </form>
                             </div>
                         </div>

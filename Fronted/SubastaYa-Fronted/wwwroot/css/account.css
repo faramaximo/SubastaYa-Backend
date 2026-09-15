@@ -1,3 +1,15 @@
-body { min-height: 100vh; display: grid; place-items: center; margin: 0; padding: 24px; background: #0f111a; color: #f8f9fa; font-family: Inter, sans-serif; }
-.account-card { width: min(100%, 440px); padding: 32px; border: 1px solid #2d3136; border-radius: 16px; background: #1e1e1e; }
-.account-card h1 { margin: 0 0 8px; font-size: 1.5rem; }.account-card p { margin: 0 0 24px; color: #a0a5ab; }.account-card form { display: grid; gap: 10px; }.account-card label { font-weight: 600; font-size: .9rem; }.account-card .form-control { margin-bottom: 8px; }.account-card a { display: inline-block; margin-top: 20px; color: #10b981; }.account-card #message { min-height: 22px; font-size: .9rem; }.success { color: #34d399; }.error { color: #fb7185; }
+/* ==========================================================================
+   PANTALLA DE CUENTA / PERFIL INDEPENDIENTE
+   Usa variables CSS del tema activo (light / dark) declaradas en catalogo.css
+   ========================================================================== */
+
+body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg-principal);
+    color: var(--text-principal);
+    /* font-family se hereda del :root global */
+}
