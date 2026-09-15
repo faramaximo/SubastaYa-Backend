@@ -29,6 +29,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// Factory para crear instancias independientes del DbContext (usado por AuditService
+// para persistir auditorías fuera de la transacción principal del handler).
+builder.Services.AddDbContextFactory<SubastaYaDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
+    ServiceLifetime.Scoped);
+
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {
