@@ -68,16 +68,16 @@ namespace SubastaYa.Infrastructure.Seed
                         new Subasta(usuarios[0].Id, categorias[3].Id, "Ford Fiesta", "Buen estado", "https://images.unsplash.com/photo-1552519507-da3b142c6e3d", 15000m, 500m, DateTime.UtcNow.AddMinutes(25)),
                             
                         // 1: Activa crítica (anti-sniping)
-                        new Subasta(usuarios[0].Id, categorias[0].Id, "Laptop Gamer", "Casi nueva", "https://images.unsplash.com/photo-1550745165-9bc0b252726f", 80000m, 1000m, DateTime.UtcNow.AddSeconds(90)),
+                        new Subasta(usuarios[0].Id, categorias[0].Id, "Laptop Gamer", "Casi nueva", "https://es.digitaltrends.com/tachyon/sites/13/2023/09/lenovo-legion-pro-5.jpg?resize=800%2C418", 80000m, 1000m, DateTime.UtcNow.AddSeconds(120)),
                             
                         // 2: Próxima (Programada +24 hs)
-                        new Subasta(usuarios[0].Id, categorias[1].Id, "Reloj Antiguo", "Siglo XIX", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f", 50000m, 2000m, DateTime.UtcNow.AddHours(48)),
+                        new Subasta(usuarios[0].Id, categorias[1].Id, "Reloj Antiguo", "Siglo XIX", "https://i.pinimg.com/736x/4b/a1/e3/4ba1e341b9f2e8c1b3d023c2a9297fc6.jpg", 50000m, 2000m, DateTime.UtcNow.AddHours(48)),
                             
                         // 3: Vencida con ganador
-                        new Subasta(usuarios[0].Id, categorias[2].Id, "Chaqueta de Cuero Vintage", "Edición limitada", "https://fund.ar/wp-content/uploads/2023/12/pexels-rdne-stock-project-5698851-scaled.jpg", 10000m, 1000m, DateTime.UtcNow.AddMinutes(10)),
+                        new Subasta(usuarios[0].Id, categorias[2].Id, "Chaqueta de Cuero Vintage", "Edición limitada", "https://images.stockcake.com/public/b/6/1/b61db703-ace3-4bc4-a121-cf076f7f7de1/vintage-leather-jacket-stockcake.jpg", 10000m, 1000m, DateTime.UtcNow.AddMinutes(10)),
                             
                         // 4: Vencida desierta
-                        new Subasta(usuarios[0].Id, categorias[0].Id, "Auriculares In-Ear", "Inalámbricos", "https://images.unsplash.com/photo-1550745165-9bc0b252726f", 5000m, 100m, DateTime.UtcNow.AddMinutes(10))
+                        new Subasta(usuarios[0].Id, categorias[0].Id, "Auriculares In-Ear", "Inalámbricos", "https://http2.mlstatic.com/D_NQ_NP_855203-MLA99567193754_122025-O.webp", 5000m, 100m, DateTime.UtcNow.AddMinutes(10))
                     };
 
                     context.Subastas.AddRange(subastas);
