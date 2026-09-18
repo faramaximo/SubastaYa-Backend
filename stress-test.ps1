@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # Script de Prueba de Concurrencia (PowerShell) - SubastaYa
 # Envia dos ofertas de puja simultaneas a la misma subasta en el mismo instante
 # simulando dos postores distintos.
@@ -8,11 +8,11 @@
 # ==============================================================================
 
 $SubastaId = if ($env:SUBASTA_ID) { $env:SUBASTA_ID } else { "1" }
-$ApiUrl = if ($env:API_URL) { $env:API_URL } else { "http://localhost:5216/api/v1/auctions/$SubastaId/bids" }
-$Monto = if ($env:MONTO) { [decimal]$env:MONTO } else { 150000 }
+$ApiUrl = if ($env:API_URL) { $env:API_URL } else { "http://localhost:5000/api/v1/auctions/$SubastaId/bids" }
+$Monto = if ($env:MONTO) { [decimal]$env:MONTO } else { 55000 }
 
-$Token1 = if ($env:TOKEN_POSTOR1) { $env:TOKEN_POSTOR1 } elseif ($env:TOKEN1) { $env:TOKEN1 } else { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
-$Token2 = if ($env:TOKEN_POSTOR2) { $env:TOKEN_POSTOR2 } elseif ($env:TOKEN2) { $env:TOKEN2 } else { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+$Token1 = if ($env:TOKEN_POSTOR1) { $env:TOKEN_POSTOR1 } elseif ($env:TOKEN1) { $env:TOKEN1 } else { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQ29tcHJhZG9yIEzDrWRlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImNvbXByYWRvcjFAdGVzdC5jb20iLCJleHAiOjE3OTAwMjIzMjQsImlzcyI6IlN1YmFzdGFZYSIsImF1ZCI6IlN1YmFzdGFZYS5Gcm9udGVuZCJ9.FyWoLpOBvVKR6VPNXRTM3P4AXAxQuXHRsLQhcwb3jUg" }
+$Token2 = if ($env:TOKEN_POSTOR2) { $env:TOKEN_POSTOR2 } elseif ($env:TOKEN2) { $env:TOKEN2 } else { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQ29tcHJhZG9yIERvcyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImNvbXByYWRvcjJAdGVzdC5jb20iLCJleHAiOjE3OTAwMjIzODQsImlzcyI6IlN1YmFzdGFZYSIsImF1ZCI6IlN1YmFzdGFZYS5Gcm9udGVuZCJ9.MKWlp7S34-flnQFvjQgrYgYEtj8mbeVjNEQuQ3x2jtg" }
 
 $jsonBody = @{ monto = $Monto } | ConvertTo-Json
 

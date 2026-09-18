@@ -22,8 +22,6 @@ public class SubastaYaDbContext : DbContext
 
         // Aplica todas las configuraciones IEntityTypeConfiguration del ensamblado actual
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-        modelBuilder.ApplyConfiguration(new Configurations.AuditoriaLogConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.CategoriaConfiguration());
     }
 }
 

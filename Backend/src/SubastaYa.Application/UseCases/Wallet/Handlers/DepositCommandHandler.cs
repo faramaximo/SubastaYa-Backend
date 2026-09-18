@@ -1,3 +1,5 @@
+namespace SubastaYa.Application.UseCases.Wallet.Handlers;
+
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Wallet.Commands;
 using SubastaYa.Domain.Entities;

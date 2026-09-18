@@ -84,9 +84,7 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet("auctions")]
-    [HttpGet("publicaciones")]
     [HttpGet("{userId:int}/auctions")]
-    [HttpGet("{userId:int}/publicaciones")]
     public async Task<IActionResult> GetMisPublicaciones(int? userId = null)
     {
         var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -98,9 +96,7 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet("bids")]
-    [HttpGet("pujas")]
     [HttpGet("{userId:int}/bids")]
-    [HttpGet("{userId:int}/pujas")]
     public async Task<IActionResult> GetMisPujas(int? userId = null)
     {
         var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

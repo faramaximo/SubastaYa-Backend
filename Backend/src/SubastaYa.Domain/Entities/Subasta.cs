@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations; // <-- Necesitas agregar este using
+using System.ComponentModel.DataAnnotations; 
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
 

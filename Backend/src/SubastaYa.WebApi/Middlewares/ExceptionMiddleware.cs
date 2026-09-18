@@ -24,13 +24,13 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
         {
             _logger.LogWarning(ex, "Colisión de concurrencia detectada en EF Core.");
             await RegistrarConflictoAsync(context, auditService, ex.Message);
             await EscribirProblemaAsync(context, HttpStatusCode.Conflict,
                 "Conflicto de concurrencia",
-                "La subasta fue modificada por otro usuario. Por favor intente nuevamente.");
+                "La subasta fue modificada por otro usuario o por una puja simultánea. Por favor intente nuevamente.");
         }
         catch (ConcurrencyException ex)
         {

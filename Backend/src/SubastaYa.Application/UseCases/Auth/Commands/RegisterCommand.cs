@@ -7,9 +7,3 @@ public record RegisterUserCommand(
     string? BaseUrl = null
 );
 
-public record RegisterCommand(
-    string Nombre,
-    string Email,
-    string Password,
-    string? BaseUrl = null
-) : RegisterUserCommand(Nombre, Email, Password, BaseUrl);

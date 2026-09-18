@@ -82,7 +82,6 @@ builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>(); // ← N
 
 // 3. Registros de Aplicación (Auth, Subastas, Billetera y Pujas)
 builder.Services.AddScoped<RegisterUserCommandHandler>();
-builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginQueryHandler>();
 builder.Services.AddScoped<ForgotPasswordCommandHandler>();
 builder.Services.AddScoped<ResetPasswordCommandHandler>();

@@ -1,6 +1,7 @@
 using NSubstitute;
 using SubastaYa.Application.Interfaces;
 using SubastaYa.Application.UseCases.Wallet.Commands;
+using SubastaYa.Application.UseCases.Wallet.Handlers;
 using SubastaYa.Domain.Entities;
 using Xunit;
 
